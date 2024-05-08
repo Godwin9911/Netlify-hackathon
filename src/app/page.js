@@ -31,7 +31,7 @@ const UncontrolledDiagram = () => {
   };
 
   const save = async ({ payload }) => {
-    const response = await fetch("/.netlify/functions/", {
+    const response = await fetch("/.netlify/functions/saveStory", {
       method: "POST",
       body: JSON.stringify({
         ...payload,
@@ -46,23 +46,58 @@ const UncontrolledDiagram = () => {
   };
 
   const CustomRender = ({ id, content, data, inputs, outputs }) => {
-    const [editMode, setEditMode] = useState(false);
     return (
       <div
         key={id}
-        class="p-0 bg-white rounded-xl transform transition-all -hover:-translate-y-1 duration-300 shadow-lg hover:shadow-2xl relative"
+        class="p-0 bg-white rounded-xl transform transition-all -hover:-translate-y-1 duration-300 shadow-lg hover:shadow-2xl relative pt-2"
+        style={{ width: "17rem" }}
       >
-        <div className="absolute right-0 top-0 flex gap-2 p-1 text-xs">
-          <button className="" onClick={() => setEditMode(!editMode)}>
+        <div className="absolute right-0 top-0 flex item-center gap-2 p-1 text-xs items-center">
+          <div>
+            <input
+              type="checkbox"
+              id={`selected_${id}`}
+              checked={data.selected}
+              onClick={(e) => {
+                onChange(
+                  schema.nodes.map((el) => {
+                    if (el.id == id) {
+                      el.data.selected = e.target.checked;
+                    }
+                    return { ...el };
+                  })
+                );
+              }}
+            />
+          </div>
+
+          <label for={`editMode_${id}`}>
+            <input
+              type="checkbox"
+              id={`editMode_${id}`}
+              className="hidden"
+              checked={data.editMode}
+              onClick={(e) => {
+                onChange(
+                  schema.nodes.map((el) => {
+                    if (el.id == id) {
+                      el.data.editMode = e.target.checked;
+                    }
+                    return { ...el };
+                  })
+                );
+              }}
+            />
             🖋️
-          </button>
+          </label>
+
           <button
             className=""
             title={id}
             onClick={() => {
-              // if (confirm("Delete Paragraph?")) {
-              deleteNodeFromSchema(id);
-              // }
+              if (confirm("Delete Paragraph?")) {
+                deleteNodeFromSchema(id);
+              }
             }}
           >
             ✖️
@@ -75,27 +110,46 @@ const UncontrolledDiagram = () => {
           alt=""
         /> */}
           <div class="p-2 mb-4">
-            {!editMode ? (
-              <h2 class="font-bold text-md mb-2 ">Heading</h2>
+            {!data.editMode ? (
+              <h2 class="font-bold text-md mb-2 p-1">{data.title}</h2>
             ) : (
               <input
                 className="border rounded mb-2 font-bold  text-md p-1"
                 placeholder="Enter Heading"
                 style={{ width: "100%" }}
+                value={data.title}
+                id={`title_${id}`}
+                onChange={(e) => {
+                  onChange(
+                    schema.nodes.map((el) => {
+                      if (el.id == id) el.data.title = e.target.value;
+                      return { ...el };
+                    })
+                  );
+                }}
               />
             )}
 
             {/*  {content} */}
-            {!editMode ? (
-              <p class="text-xs text-gray-600">
-                Simple Yet Beautiful Card Design with TaiwlindCss. Subscribe to
-                our Youtube channel for more ...
+            {!data.editMode ? (
+              <p class="text-xs text-gray-600 line-clamp-3 p-1">
+                {data.paragraph}
               </p>
             ) : (
               <textarea
                 className="border rounded text-xs w-100 p-1"
                 rows={3}
                 placeholder="Enter Paragraph"
+                value={data.paragraph}
+                id={`paragraph_${id}`}
+                onChange={(e) => {
+                  onChange(
+                    schema.nodes.map((el) => {
+                      if (el.id == id) el.data.paragraph = e.target.value;
+                      return { ...el };
+                    })
+                  );
+                }}
                 style={{ width: "100%" }}
               ></textarea>
             )}
@@ -150,11 +204,11 @@ const UncontrolledDiagram = () => {
       id: `node-${uniqueKey}`,
       content: `Node ${/* schema.nodes.length + 1 */ uniqueKey}`,
       coordinates: [
-        schema.nodes[schema.nodes.length - 1].coordinates[0] + 250,
+        schema.nodes[schema.nodes.length - 1].coordinates[0] + 300,
         schema.nodes[schema.nodes.length - 1].coordinates[1],
       ],
       render: CustomRender,
-      data: {},
+      data: { title: "", paragraph: "", editMode: true, selected: false },
       inputs: [{ id: `port-${Math.random()}` }],
       outputs: [{ id: `port-${Math.random()}` }],
     };
@@ -167,40 +221,74 @@ const UncontrolledDiagram = () => {
       style={{ height: "100vh", width: "100vw", overflow: "auto" }}
       className="text-md"
     >
-      <div className="absolute z-10 flex px-2 items-center justify-center">
-        <input
-          placeholder="Enter Story Title..."
-          className="border h-8 px-1 text-md"
-          style={{ width: "400px" }}
-        />
-        <button
-          className="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 m-4 text-md"
-          onClick={() =>
-            addNewNode({ uniqueKey: `${Date.now()}_${Math.random()}` })
-          }
-        >
-          📝 Add Paragraph
-        </button>
+      <div className="absolute z-10 flex p-2 items-center justify-between gap-4 w-full ">
+        <div className="flex justify-between gap-4">
+          <input
+            placeholder="Enter Story Title..."
+            className="border h-8 px-1 text-md"
+            style={{ width: "400px" }}
+          />
+          <button
+            className="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md"
+            onClick={() =>
+              addNewNode({ uniqueKey: `${Date.now()}_${Math.random()}` })
+            }
+          >
+            📝 Add Paragraph
+          </button>
 
-        <button
-          className="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 m-4 text-md"
-          onClick={() =>
-            save({
-              payload: {
-                storyData: schema,
-                storyId,
-              },
-            })
-          }
-        >
-          💾 Save
-        </button>
+          <button
+            className="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md"
+            onClick={() =>
+              save({
+                payload: {
+                  storyData: schema,
+                  storyId,
+                },
+              })
+            }
+          >
+            💾 Save
+          </button>
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md h-8"
+            onClick={() =>
+              save({
+                payload: {
+                  storyData: schema,
+                  storyId,
+                },
+              })
+            }
+          >
+            ▶️ Read Selected
+          </button>
+          <button
+            className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md h-8"
+            onClick={() =>
+              save({
+                payload: {
+                  storyData: schema,
+                  storyId,
+                },
+              })
+            }
+          >
+            📄 Publish
+          </button>
+        </div>
       </div>
 
       <Diagram
         key={schema?.nodes?.length}
         schema={schema}
-        onChange={onChange}
+        onChange={(d) => {
+          //  console.log(d);
+          onChange(d);
+        }}
       />
     </div>
   );

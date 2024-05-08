@@ -8804,7 +8804,7 @@ body {
   position: absolute;
   z-index: 50;
   user-select: none;
-  width: 17rem;
+  min-width: 17rem;
   background-color: none;
 }
 .bi.bi-diagram .bi.bi-diagram-node .bi-port-wrapper {
