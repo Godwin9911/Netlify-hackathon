@@ -46,13 +46,34 @@ const UncontrolledDiagram = () => {
   };
 
   const CustomRender = ({ id, content, data, inputs, outputs }) => {
+    const onFileSelected = (event) => {
+      const selectedFile = event.target?.files[0];
+      if (!selectedFile) return;
+
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(selectedFile);
+      reader.onload = () => {
+        const blob = new Blob([reader.result], {
+          type: selectedFile.type,
+        });
+        onChange(
+          schema.nodes.map((el) => {
+            if (el.id == id) {
+              el.data.blob = blob;
+            }
+            return { ...el };
+          })
+        );
+      };
+    };
+
     return (
       <div
         key={id}
         class="p-0 bg-white rounded-xl transform transition-all -hover:-translate-y-1 duration-300 shadow-lg hover:shadow-2xl relative pt-2"
         style={{ width: "17rem" }}
       >
-        <div className="absolute right-0 top-0 flex item-center gap-2 p-1 text-xs items-center">
+        <div className="absolute right-0 top-0 flex item-center gap-2 p-1 text-xs items-center bg-white">
           <div>
             <input
               type="checkbox"
@@ -104,14 +125,28 @@ const UncontrolledDiagram = () => {
           </button>
         </div>
         <div className="p-2">
-          {/*  <img
-          class="h-40 object-cover rounded-xl"
-          src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=750&q=80"
-          alt=""
-        /> */}
+          {data?.blob && (
+            <div className="flex justify-center">
+              <img
+                class="h-40 object-cover rounded-xl"
+                //  src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=750&q=80"
+                src={data?.blob ? URL.createObjectURL(data.blob) : ""}
+                alt=""
+              />
+            </div>
+          )}
+
+          {data.editMode && (
+            <input
+              type="file"
+              className="mx-2 border rounded w-full p-1"
+              onChange={(e) => onFileSelected(e)}
+            />
+          )}
+
           <div class="p-2 mb-4">
             {!data.editMode ? (
-              <h2 class="font-bold text-md mb-2 p-1">{data.title}</h2>
+              <h2 class="font-bold text-md mb-2 p-1">{data.title || "..."}</h2>
             ) : (
               <input
                 className="border rounded mb-2 font-bold  text-md p-1"
@@ -133,7 +168,7 @@ const UncontrolledDiagram = () => {
             {/*  {content} */}
             {!data.editMode ? (
               <p class="text-xs text-gray-600 line-clamp-3 p-1">
-                {data.paragraph}
+                {data.paragraph || "..."}
               </p>
             ) : (
               <textarea
@@ -153,17 +188,28 @@ const UncontrolledDiagram = () => {
                 style={{ width: "100%" }}
               ></textarea>
             )}
+            {data.editMode && (
+              <div class="m-2">
+                <button
+                  role="button"
+                  href="#"
+                  class="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-xs"
+                  onClick={() => {
+                    onChange(
+                      schema.nodes.map((el) => {
+                        if (el.id == id) {
+                          el.data.editMode = false;
+                        }
+                        return { ...el };
+                      })
+                    );
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+            )}
           </div>
-
-          {/*  <div class="m-2">
-            <a
-              role="button"
-              href="#"
-              class="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-xs"
-            >
-              Learn More
-            </a>
-          </div> */}
         </div>
         <div
           style={{
@@ -208,7 +254,13 @@ const UncontrolledDiagram = () => {
         schema.nodes[schema.nodes.length - 1].coordinates[1],
       ],
       render: CustomRender,
-      data: { title: "", paragraph: "", editMode: true, selected: false },
+      data: {
+        title: "",
+        paragraph: "",
+        editMode: true,
+        selected: false,
+        blob: "",
+      },
       inputs: [{ id: `port-${Math.random()}` }],
       outputs: [{ id: `port-${Math.random()}` }],
     };
