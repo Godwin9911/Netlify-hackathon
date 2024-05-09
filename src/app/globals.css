@@ -8795,9 +8795,10 @@ body {
   box-shadow: 0 0.8rem 1rem -0.2rem rgba(0, 0, 0, 0.1),
     0 0.25rem 0.5rem -0.02rem rgba(0, 0, 0, 0.05);
   min-height: 100%;
-  background-color: #f8fafc;
+  /* background-color: #f8fafc; */
   position: relative;
   overflow: auto;
+  background-color: transparent;
 }
 .bi.bi-diagram .bi.bi-diagram-node {
   box-sizing: content-box;

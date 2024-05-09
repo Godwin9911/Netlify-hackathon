@@ -3,13 +3,32 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Diagram, { createSchema, useSchema } from "beautiful-react-diagrams";
 import { useLocalStorage } from "./hooks";
+import { AudioRecorder } from "react-audio-voice-recorder";
+import bg from "../../public/images/medieval_town__free_wallpaper_by_a2a5_dfokr2n.png";
+
+/* export default function AudioR() {
+  const addAudioElement = (blob) => {
+    const url = URL.createObjectURL(blob);
+    const audio = document.createElement('audio');
+    audio.src = url;
+    audio.controls = true;
+    document.body.appendChild(audio);
+  };
+
+  return (
+    <div>
+     
+      <br />
+    </div>
+  );
+} */
 
 const UncontrolledDiagram = () => {
   const initialSchema = createSchema({
     nodes: [
       {
         id: "node-1",
-        content: "Start...",
+        content: "Start Adventure...",
         coordinates: [60, 60],
         outputs: [{ id: "port-1", alignment: "right" }],
       },
@@ -56,6 +75,7 @@ const UncontrolledDiagram = () => {
         const blob = new Blob([reader.result], {
           type: selectedFile.type,
         });
+
         onChange(
           schema.nodes.map((el) => {
             if (el.id == id) {
@@ -67,11 +87,22 @@ const UncontrolledDiagram = () => {
       };
     };
 
+    const addAudioElement = (blob) => {
+      onChange(
+        schema.nodes.map((el) => {
+          if (el.id == id) {
+            el.data.blobAudio = blob;
+          }
+          return { ...el };
+        })
+      );
+    };
+
     return (
       <div
         key={id}
         class="p-0 bg-white rounded-xl transform transition-all -hover:-translate-y-1 duration-300 shadow-lg hover:shadow-2xl relative pt-2"
-        style={{ width: "17rem" }}
+        style={{ width: "17rem", overflow: "hidden" }}
       >
         <div className="absolute right-0 top-0 flex item-center gap-2 p-1 text-xs items-center bg-white">
           <div>
@@ -121,7 +152,7 @@ const UncontrolledDiagram = () => {
               }
             }}
           >
-            ✖️
+            ❌
           </button>
         </div>
         <div className="p-2">
@@ -188,6 +219,40 @@ const UncontrolledDiagram = () => {
                 style={{ width: "100%" }}
               ></textarea>
             )}
+
+            <div className="mt-4">
+              {data.editMode && (
+                <AudioRecorder
+                  onRecordingComplete={addAudioElement}
+                  audioTrackConstraints={{
+                    noiseSuppression: true,
+                    echoCancellation: true,
+                    // autoGainControl,
+                    // channelCount,
+                    // deviceId,
+                    // groupId,
+                    // sampleRate,
+                    // sampleSize,
+                  }}
+                  onNotAllowedOrFound={(err) => console.table(err)}
+                  // downloadOnSavePress={true}
+                  downloadFileExtension="webm"
+                  mediaRecorderOptions={{
+                    audioBitsPerSecond: 128000,
+                  }}
+                  showVisualizer={true}
+                  classes={{ AudioRecorderClass: "w-full" }}
+                />
+              )}
+              {data?.blobAudio && (
+                <audio
+                  src={URL.createObjectURL(data.blobAudio)}
+                  controls
+                  className="mt-4 w-full"
+                />
+              )}{" "}
+            </div>
+
             {data.editMode && (
               <div class="m-2">
                 <button
@@ -260,6 +325,7 @@ const UncontrolledDiagram = () => {
         editMode: true,
         selected: false,
         blob: "",
+        blobAudio: "",
       },
       inputs: [{ id: `port-${Math.random()}` }],
       outputs: [{ id: `port-${Math.random()}` }],
@@ -270,18 +336,23 @@ const UncontrolledDiagram = () => {
 
   return (
     <div
-      style={{ height: "100vh", width: "100vw", overflow: "auto" }}
+      style={{
+        height: "100vh",
+        width: "100vw",
+        overflow: "auto",
+        backgroundImage: `url(${bg.src})`,
+      }}
       className="text-md"
     >
       <div className="absolute z-10 flex p-2 items-center justify-between gap-4 w-full ">
         <div className="flex justify-between gap-4">
           <input
             placeholder="Enter Story Title..."
-            className="border h-8 px-1 text-md"
+            className="border h-8 px-1 text-md shadow-md"
             style={{ width: "400px" }}
           />
           <button
-            className="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md"
+            className="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md shadow-md"
             onClick={() =>
               addNewNode({ uniqueKey: `${Date.now()}_${Math.random()}` })
             }
@@ -290,7 +361,7 @@ const UncontrolledDiagram = () => {
           </button>
 
           <button
-            className="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md"
+            className="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md shadow-md"
             onClick={() =>
               save({
                 payload: {
@@ -306,7 +377,7 @@ const UncontrolledDiagram = () => {
 
         <div className="flex gap-4">
           <button
-            className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md h-8"
+            className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md h-8 shadow-md"
             onClick={() =>
               save({
                 payload: {
@@ -319,7 +390,7 @@ const UncontrolledDiagram = () => {
             ▶️ Read Selected
           </button>
           <button
-            className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md h-8"
+            className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md h-8 shadow-md"
             onClick={() =>
               save({
                 payload: {
