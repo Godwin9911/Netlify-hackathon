@@ -1,9 +1,18 @@
 import { getStore } from "@netlify/blobs";
 
-export default async (req, res) => {
-  const story = getStore("story");
-  await story.setJSON(req.body.storyId, req.body.storyData);
-  return new Response("Story Saved!", {
-    headers: { "content-type": "text/html" },
+export const handler = async (req, res) => {
+  const story = getStore({
+    siteID: process.env.MY_SITE_ID,
+    token: process.env.MY_SITE_TOKEN,
+    name: "story",
   });
+  await story.setJSON("storyData", {
+    storyId: req.body.storyId,
+    storyData: req.body.storyData,
+  });
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: "Story Saved" }),
+  };
 };
