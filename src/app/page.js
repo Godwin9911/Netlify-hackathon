@@ -50,7 +50,7 @@ const UncontrolledDiagram = () => {
   };
 
   const save = async ({ payload }) => {
-    const response = await fetch("/netlify/functions/savestory", {
+    const response = await fetch("/.netlify/functions/savestory", {
       method: "POST",
       body: JSON.stringify({
         ...payload,
