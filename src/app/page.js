@@ -2,9 +2,11 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Diagram, { createSchema, useSchema } from "beautiful-react-diagrams";
-import { useLocalStorage } from "./hooks";
+import { useIsMobile, useLocalStorage } from "./hooks";
 import { AudioRecorder } from "react-audio-voice-recorder";
 import bg from "../../public/images/medieval_town__free_wallpaper_by_a2a5_dfokr2n.png";
+import { toast } from "react-toastify";
+import { cloneDeep, uniqBy } from "lodash";
 
 /* export default function AudioR() {
   const addAudioElement = (blob) => {
@@ -23,6 +25,24 @@ import bg from "../../public/images/medieval_town__free_wallpaper_by_a2a5_dfokr2
   );
 } */
 
+/*  <div>
+            <input
+              type="checkbox"
+              id={`selected_${id}`}
+              checked={data.selected}
+              onChange={(e) => {
+                onChange(
+                  schema.nodes.map((el) => {
+                    if (el.id == id) {
+                      el.data.selected = e.target.checked;
+                    }
+                    return { ...el };
+                  })
+                );
+              }}
+            />
+          </div> */
+
 const UncontrolledDiagram = () => {
   const initialSchema = createSchema({
     nodes: [
@@ -30,13 +50,18 @@ const UncontrolledDiagram = () => {
         id: "node-1",
         content: "Start Adventure...",
         coordinates: [60, 60],
-        outputs: [{ id: "port-1", alignment: "right" }],
+        outputs: [
+          { id: "port-Author", alignment: "right" },
+          { id: "port-Reader", alignment: "right" },
+        ],
       },
     ],
   });
   // create diagrams schema
   const [schema, { onChange, addNode, removeNode }] = useSchema(initialSchema);
   const [storyId, setStoryId] = useLocalStorage("storyId", `${Date.now()}`);
+  const isMobile = useIsMobile();
+  const [storyState, setStoryState] = useState("Author");
 
   const deleteNodeFromSchema = (id) => {
     try {
@@ -62,6 +87,12 @@ const UncontrolledDiagram = () => {
     });
 
     console.log(response);
+
+    if (!response.ok) {
+      toast.error("Unable to save story");
+    } else {
+      toast("Story saved");
+    }
   };
 
   const CustomRender = ({ id, content, data, inputs, outputs }) => {
@@ -104,57 +135,41 @@ const UncontrolledDiagram = () => {
         class="p-0 bg-white rounded-xl transform transition-all -hover:-translate-y-1 duration-300 shadow-lg hover:shadow-2xl relative pt-2"
         style={{ width: "17rem", overflow: "hidden" }}
       >
-        <div className="absolute right-0 top-0 flex item-center gap-2 p-1 text-xs items-center bg-white">
-          <div>
-            <input
-              type="checkbox"
-              id={`selected_${id}`}
-              checked={data.selected}
-              onClick={(e) => {
-                onChange(
-                  schema.nodes.map((el) => {
-                    if (el.id == id) {
-                      el.data.selected = e.target.checked;
-                    }
-                    return { ...el };
-                  })
-                );
+        {data?.storyState === "Author" && (
+          <div className="absolute right-0 top-0 flex item-center gap-2 p-1 text-xs items-center bg-white">
+            <label htmlFor={`editMode_${id}`}>
+              <input
+                type="checkbox"
+                id={`editMode_${id}`}
+                className="hidden"
+                checked={data.editMode}
+                onClick={(e) => {
+                  onChange(
+                    schema.nodes.map((el) => {
+                      if (el.id == id) {
+                        el.data.editMode = e.target.checked;
+                      }
+                      return { ...el };
+                    })
+                  );
+                }}
+              />
+              🖋️
+            </label>
+
+            <button
+              className=""
+              title={id}
+              onClick={() => {
+                if (confirm("Delete Paragraph?")) {
+                  deleteNodeFromSchema(id);
+                }
               }}
-            />
+            >
+              ❌
+            </button>
           </div>
-
-          <label for={`editMode_${id}`}>
-            <input
-              type="checkbox"
-              id={`editMode_${id}`}
-              className="hidden"
-              checked={data.editMode}
-              onClick={(e) => {
-                onChange(
-                  schema.nodes.map((el) => {
-                    if (el.id == id) {
-                      el.data.editMode = e.target.checked;
-                    }
-                    return { ...el };
-                  })
-                );
-              }}
-            />
-            🖋️
-          </label>
-
-          <button
-            className=""
-            title={id}
-            onClick={() => {
-              if (confirm("Delete Paragraph?")) {
-                deleteNodeFromSchema(id);
-              }
-            }}
-          >
-            ❌
-          </button>
-        </div>
+        )}
         <div className="p-2">
           {data?.blob && (
             <div className="flex justify-center">
@@ -276,35 +291,75 @@ const UncontrolledDiagram = () => {
             )}
           </div>
         </div>
-        <div
-          style={{
-            marginTop: "10px",
-            display: "flex",
-            justifyContent: "space-between",
-            width: "100%",
-          }}
-          className="absolute bottom-0 rounded-xl"
-        >
-          {inputs?.map((port) =>
-            React.cloneElement(port, {
-              style: {
-                width: "24px",
-                height: "24px",
-                background: "#e2e8f0",
-                borderBottomLeftRadius: "inherit",
-              },
-            })
-          )}
-          {outputs?.map((port) =>
-            React.cloneElement(port, {
-              style: {
-                width: "24px",
-                height: "24px",
-                background: "red",
-                borderBottomRightRadius: "inherit",
-              },
-            })
-          )}
+        <div className="absolute bottom-0 rounded-xl w-full">
+          <div
+            style={{
+              marginTop: "10px",
+              display: "flex",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+            title="Author"
+          >
+            {inputs
+              ?.filter((port) => port?.key && !port?.key?.includes("Reader"))
+              .map((port) =>
+                React.cloneElement(port, {
+                  style: {
+                    width: "24px",
+                    height: "24px",
+                    background: "rgb(186, 230, 253)",
+                    borderBottomLeftRadius: "inherit",
+                  },
+                })
+              )}
+            {outputs
+              ?.filter((port) => port?.key && !port?.key?.includes("Reader"))
+              .map((port) =>
+                React.cloneElement(port, {
+                  style: {
+                    width: "24px",
+                    height: "24px",
+                    background: "rgb(22, 78, 99)",
+                    borderBottomRightRadius: "inherit",
+                  },
+                })
+              )}{" "}
+          </div>
+
+          <div
+            style={{
+              marginTop: "10px",
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+            title="Reader"
+          >
+            {inputs
+              ?.filter((port) => port?.key && port?.key?.includes("Reader"))
+              .map((port) =>
+                React.cloneElement(port, {
+                  style: {
+                    width: "24px",
+                    height: "24px",
+                    background: "rgb(52, 211, 153)",
+                    borderBottomLeftRadius: "inherit",
+                  },
+                })
+              )}
+            {outputs
+              ?.filter((port) => port?.key && port?.key?.includes("Reader"))
+              .map((port) =>
+                React.cloneElement(port, {
+                  style: {
+                    width: "24px",
+                    height: "24px",
+                    background: "rgb(6, 78, 59)",
+                    borderBottomRightRadius: "inherit",
+                  },
+                })
+              )}
+          </div>
         </div>
       </div>
     );
@@ -326,9 +381,16 @@ const UncontrolledDiagram = () => {
         selected: false,
         blob: "",
         blobAudio: "",
+        storyState: "Author",
       },
-      inputs: [{ id: `port-${Math.random()}` }],
-      outputs: [{ id: `port-${Math.random()}` }],
+      inputs: [
+        { id: `port-${Math.random()}-Author` },
+        { id: `port-${Math.random()}-Reader` },
+      ],
+      outputs: [
+        { id: `port-${Math.random()}-Author` },
+        { id: `port-${Math.random()}-Reader` },
+      ],
     };
 
     addNode(nextNode);
@@ -337,47 +399,76 @@ const UncontrolledDiagram = () => {
   return (
     <div
       style={{
-        height: "100vh",
-        width: "100vw",
         overflow: "auto",
         backgroundImage: `url(${bg.src})`,
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
+        backgroundPosition: "center",
+        backgroundSize: "cover",
       }}
-      className="text-md"
+      className="text-md w-screen h-screen"
     >
-      <div className="absolute z-10 flex p-2 items-center justify-between gap-4 w-full ">
+      <div
+        className="absolute flex p-2 items-center justify-between gap-4 w-full backdrop-blur-sm"
+        style={{ zIndex: "100" }}
+      >
         <div className="flex justify-between gap-4">
           <input
             placeholder="Enter Story Title..."
             className="border h-8 px-1 text-md shadow-md"
             style={{ width: "400px" }}
           />
-          <button
-            className="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md shadow-md"
-            onClick={() =>
-              addNewNode({ uniqueKey: `${Date.now()}_${Math.random()}` })
-            }
-          >
-            📝 Add Paragraph
-          </button>
-
-          <button
-            className="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md shadow-md"
-            onClick={() =>
-              save({
-                payload: {
-                  storyData: schema,
-                  storyId,
-                },
-              })
-            }
-          >
-            💾 Save
-          </button>
+          {storyState === "Author" && (
+            <>
+              <button
+                className="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 min-h-8 text-md shadow-md"
+                onClick={() =>
+                  addNewNode({ uniqueKey: `${Date.now()}_${Math.random()}` })
+                }
+              >
+                📝 <span className="hidden lg:inline">Add Paragraph</span>
+              </button>
+              <button
+                className="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 min-h-8 text-md shadow-md"
+                onClick={() =>
+                  save({
+                    payload: {
+                      storyData: schema,
+                      storyId,
+                    },
+                  })
+                }
+              >
+                💾<span className="hidden lg:inline">Save</span>
+              </button>
+            </>
+          )}
         </div>
 
         <div className="flex gap-4">
+          <select
+            className="min-w-20"
+            value={storyState}
+            onChange={(e) => {
+              setStoryState(e.target.value);
+
+              if (schema?.nodes) {
+                onChange(
+                  uniqBy(schema.nodes, "id").map((el) => {
+                    if (el?.data) {
+                      el.data.storyState = e.target.value;
+                    }
+                    return { ...el };
+                  })
+                );
+              }
+            }}
+          >
+            <option>Author</option>
+            <option>Reader</option>
+          </select>
           <button
-            className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md h-8 shadow-md"
+            className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md min-h-8 shadow-md"
             onClick={() =>
               save({
                 payload: {
@@ -387,10 +478,10 @@ const UncontrolledDiagram = () => {
               })
             }
           >
-            ▶️ Read Selected
+            ▶️ <span className="hidden lg:inline">Read Selected</span>
           </button>
           <button
-            className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md h-8 shadow-md"
+            className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md min-h-8 shadow-md"
             onClick={() =>
               save({
                 payload: {
@@ -400,19 +491,42 @@ const UncontrolledDiagram = () => {
               })
             }
           >
-            📄 Publish
+            📄 <span className="hidden lg:inline">Publish</span>
           </button>
         </div>
       </div>
 
-      <Diagram
-        key={schema?.nodes?.length}
-        schema={schema}
-        onChange={(d) => {
-          //  console.log(d);
-          onChange(d);
+      <div
+        style={{
+          width: "calc(100vw * 3)",
+          height: "calc(100vh * 3)",
+          // overflow: "auto",
         }}
-      />
+        title={`${schema?.nodes?.length}_${storyState}`}
+      >
+        <Diagram
+          key={`${schema?.nodes?.length}_${storyState}`}
+          schema={schema}
+          onChange={(d) => {
+            if (d?.schema?.nodes) {
+              d.schema.nodes = uniqBy(d.schema.nodes, "id");
+            }
+            if (d.links) {
+              d.links = d.links.map((link) => ({
+                ...link,
+                className: link?.output?.includes("Reader")
+                  ? "reader-link-class"
+                  : "",
+              }));
+            } else {
+              d.links = [];
+            }
+
+            console.log(d);
+            onChange(d);
+          }}
+        />
+      </div>
     </div>
   );
 };

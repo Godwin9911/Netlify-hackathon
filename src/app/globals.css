@@ -8904,6 +8904,14 @@ body {
   cursor: pointer;
   user-select: none;
 }
+
+.bi.bi-diagram
+  .bi-link-canvas-layer
+  .bi-diagram-link.reader-link-class
+  .bi-link-path {
+  stroke: green;
+}
+
 .bi.bi-diagram .bi-link-canvas-layer .bi-diagram-link .bi-link-ghost {
   pointer-events: stroke;
   stroke: transparent;
