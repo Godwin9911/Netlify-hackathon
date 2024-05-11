@@ -14,9 +14,10 @@ import bgRomance from "../../public/images/ash_forest___by_elleykhure_dhdsr3e-pr
 import { toast } from "react-toastify";
 import { cloneDeep, uniqBy } from "lodash";
 import { ColorRing } from "react-loader-spinner";
-import { copyText, imagePreloader } from "./helpers";
+import { copyText, imagePreloader, waitFor } from "./helpers";
 import HelpModal from "./modals/HelpModal";
 import SampleStoriesModal from "./modals/SampleStoriesModal";
+import { HexColorPicker } from "react-colorful";
 
 /* export default function AudioR() {
   const addAudioElement = (blob) => {
@@ -78,10 +79,11 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
   const [bgIndex, setBgIndex] = useState(0);
   const [showHelpModal, setShowHelpModal] = React.useState(false);
   const [showSampleStoryModal, setShowSampleStoryModal] = React.useState(false);
+  const [time, setTime] = useState(Date.now());
 
   const deleteNodeFromSchema = (id) => {
     try {
-      console.log(id);
+      console.log(id, schema.nodes);
       const nodeToRemove = schema.nodes.find((node) => node.id === id);
       console.log(nodeToRemove);
       if (nodeToRemove) removeNode(nodeToRemove);
@@ -92,6 +94,9 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
 
   const save = async ({ payload, copyLink }) => {
     try {
+      navigator.clipboard.writeText(
+        `${window.location.origin}/published/${payload.storyId}`
+      );
       setIsLoading(true);
       payload.storyData.nodes = uniqBy(payload.storyData.nodes, "id");
       const response = await fetch("/.netlify/functions/savestory", {
@@ -105,7 +110,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
         },
       });
 
-      console.log(response);
+      //   console.log(response);
 
       if (!response.ok) {
         toast.error("Unable to save story");
@@ -125,7 +130,11 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
     }
   };
 
-  const getStory = async ({ storyIdParam }) => {
+  const getStory = async ({
+    storyIdParam,
+    storyState = "Reader",
+    editMode = false,
+  }) => {
     try {
       setIsLoading(true);
       const response = await fetch(
@@ -150,11 +159,14 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
         // console.log(JSON.parse(data.storyFound));
 
         const storyFound = JSON.parse(data.storyFound);
-        console.log(storyFound);
+        console.log(storyFound, "kk");
         setStoryId(storyFound.storyId);
         setBgIndex(storyFound?.bgIndex);
+        setStoryTitle(storyFound.storyTitle);
+        setStoryState(storyState);
 
         storyFound.storyData.nodes = storyFound.storyData.nodes.map((el) => {
+          console.log(el);
           return {
             ...el,
             ...(el.id !== "node-1"
@@ -162,18 +174,34 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
                   render: CustomRender,
                   data: {
                     ...el.data,
-                    storyState: "Reader",
-                    editMode: false,
+                    storyState,
+                    editMode,
+                    color: el.data?.color ? el.data?.color : "#DAE1E7",
                   },
                 }
               : {}),
           };
         });
-        console.log(storyFound.storyData, "Reader");
-        // clean up
-        onChange(storyFound.storyData);
-        setStoryTitle(storyFound.storyTitle);
-        setStoryState("Reader");
+        //  console.log(storyFound.storyData, "Reader");
+
+        console.log(
+          storyFound.storyData.nodes.filter((el, index) => index !== 0)
+        );
+
+        await storyFound.storyData.nodes
+          .filter((el, index) => index !== 0)
+          .reduce(
+            (p, node) =>
+              new Promise(async (resolve) => {
+                console.log(node);
+                addNode(node);
+                await waitFor(100);
+                return resolve();
+              }),
+            Promise.resolve()
+          );
+
+        // onChange(createSchema(storyFound.storyData));
       }
     } catch (err) {
       toast.error(err);
@@ -183,10 +211,17 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
   };
 
   useEffectOnce(() => {
-    if (storyIdParam)
+    if (storyIdParam) {
       getStory({
         storyIdParam,
       });
+    } else {
+      getStory({
+        storyIdParam: storyId,
+        storyState: "Author",
+        editMode: true,
+      });
+    }
   });
 
   const CustomRender = ({ id, content, data, inputs, outputs }) => {
@@ -223,11 +258,29 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
       );
     };
 
+    const setColor = (color) => {
+      console.log(color);
+      onChange(
+        schema.nodes.map((el) => {
+          if (el.id == id) {
+            el.data.color = color;
+          }
+          return { ...el };
+        })
+      );
+    };
+
+    const [picker, setShowPicker] = useState(false);
+
     return (
       <div
         key={id}
         class="p-0 bg-white rounded-xl transform transition-all -hover:-translate-y-1 duration-300 shadow-lg hover:shadow-2xl relative pt-2"
-        style={{ width: "17rem", overflow: "hidden" }}
+        style={{
+          width: "17rem",
+          overflow: "hidden",
+          borderTop: `6px Solid ${data?.color}`,
+        }}
         /* onClick={(e) => {
           if (e.detail === 2) {
             const portId = e.target.getAttribute("data-port-id");
@@ -238,13 +291,39 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
       >
         {data?.storyState === "Author" && (
           <div className="absolute right-0 top-0 flex item-center gap-2 p-1 text-xs items-center bg-white">
-            <label htmlFor={`editMode_${id}`}>
+            <button
+              onClick={() => setShowPicker(!picker)}
+              title="Pick Color"
+              className="w-4"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <title>palette</title>
+                <path d="M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,6.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 11,6.5A1.5,1.5 0 0,1 9.5,8M6.5,12A1.5,1.5 0 0,1 5,10.5A1.5,1.5 0 0,1 6.5,9A1.5,1.5 0 0,1 8,10.5A1.5,1.5 0 0,1 6.5,12M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A1.5,1.5 0 0,0 13.5,19.5C13.5,19.11 13.35,18.76 13.11,18.5C12.88,18.23 12.73,17.88 12.73,17.5A1.5,1.5 0 0,1 14.23,16H16A5,5 0 0,0 21,11C21,6.58 16.97,3 12,3Z" />
+              </svg>{" "}
+            </button>
+
+            <div className="relative">
+              {picker && (
+                <div className="absolute w-40 z-10 right-0 top-4">
+                  <HexColorPicker
+                    className="w-40"
+                    color={data.color}
+                    onChange={setColor}
+                  />
+                </div>
+              )}
+            </div>
+
+            {JSON.stringify(data.editMode)}
+
+            <label htmlFor={`editMode_${id}`} title="Edit">
               <input
                 type="checkbox"
                 id={`editMode_${id}`}
                 className="hidden"
                 checked={data.editMode}
-                onClick={(e) => {
+                onChange={(e) => {
+                  console.log(e.target.checked);
                   onChange(
                     schema.nodes.map((el) => {
                       if (el.id == id) {
@@ -259,8 +338,9 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
             </label>
 
             <button
+              title="Delete"
               className=""
-              title={id}
+              //   title={id}
               onClick={() => {
                 if (confirm("Delete Paragraph?")) {
                   deleteNodeFromSchema(id);
@@ -489,6 +569,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
         blob: "",
         blobAudio: "",
         storyState: "Author",
+        color: "#DAE1E7",
       },
       inputs: [
         { id: `port-${Math.random()}-Author` },
@@ -499,6 +580,8 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
         { id: `port-${Math.random()}-Reader` },
       ],
     };
+
+    console.log(nextNode);
 
     addNode(nextNode);
   };
@@ -532,6 +615,9 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
         style={{ zIndex: "100" }}
       >
         <div className="flex justify-between gap-4">
+          <div className="w-8">
+            <img src="logo.svg" />
+          </div>
           <input
             placeholder="Enter Story Title..."
             className="border h-8 px-1 text-md shadow-md"
@@ -638,8 +724,8 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
                   payload: {
                     storyData: schema,
                     storyId,
-                    bgIndex,
                     storyTitle,
+                    bgIndex,
                   },
                   copyLink: true,
                 })
@@ -676,7 +762,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
         //   title={`${schema?.nodes?.length}_${storyState}`}
       >
         <Diagram
-          key={`${schema?.nodes?.length}_${storyState}`}
+          key={`${schema?.nodes?.length}_${storyState}_${time}`}
           schema={schema}
           onChange={(d) => {
             if (d?.schema?.nodes) {

@@ -9,7 +9,7 @@ export const handler = async (req, res) => {
     token: process.env.MY_SITE_TOKEN,
     name: "story",
   });
-  // console.log(storyId);
+  console.log(storyId);
   const storyFound = await story.get(`storyData_${storyId}`);
 
   return {

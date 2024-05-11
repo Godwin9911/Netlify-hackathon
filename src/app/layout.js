@@ -6,14 +6,16 @@ import "react-toastify/dist/ReactToastify.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Netlify Hackathon",
-  description: "Project for Netlify Hackathon",
+  title: "TaleTraverse: Netlify Hackathon",
+  description: "Project for Netlify Hackathon: TaleTraverse",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head></head>
+      <head>
+        <link rel="icon" href="/logo.svg" sizes="any" />
+      </head>
       <body className={inter?.className}>
         {children} <ToastContainer />
       </body>
