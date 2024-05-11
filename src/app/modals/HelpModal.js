@@ -38,19 +38,22 @@ export default function HelpModal({ showModal, setShowModal }) {
                         <li>Text</li>
                         <li>Audio</li>
                       </ol>
-                      to make the story
+                      to make the story.
+                      <br />
+                      Click link to unconnect cards
                     </p>
 
                     <hr className="my-8" />
-
                     <p>
                       <div
                         className="h-4 w-4"
                         style={{ backgroundColor: "#064E3B" }}
                       ></div>{" "}
                       👤
-                      <b>Reader:</b> Follows Story by Connecting Cards
+                      <b>Reader:</b> Follows Story by Connecting Cards. <br />
+                      Can't unconnect cards user must progress
                     </p>
+                    <hr className="my-8" />
                   </div>
                 </div>
                 {/*footer*/}
