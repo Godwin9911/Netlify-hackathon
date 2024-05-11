@@ -8,7 +8,7 @@ import bg from "../../public/images/medieval_town__free_wallpaper_by_a2a5_dfokr2
 import { toast } from "react-toastify";
 import { cloneDeep, uniqBy } from "lodash";
 import { ColorRing } from "react-loader-spinner";
-import { copyText } from "./helpers";
+import { copyText, imagePreloader } from "./helpers";
 import HelpModal from "./modals/HelpModal";
 
 /* export default function AudioR() {
@@ -492,6 +492,17 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
     };
 
     addNode(nextNode);
+  };
+
+  const setBgImage = async ({ url }) => {
+    try {
+      setIsLoading(true);
+      await imagePreloader(url);
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

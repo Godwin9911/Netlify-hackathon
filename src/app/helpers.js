@@ -9,3 +9,17 @@ export const copyText = ({ text, toast }) => {
   document.body.removeChild(textarea);
   toast.success("Copied to clipboard");
 };
+
+export const imagePreloader = (path) => {
+  return new Promise(function (resolve, reject) {
+    // Create a new image from JavaScript
+    var image = new Image();
+    // Bind an event listener on the load to call the `resolve` function
+    image.onload = resolve;
+    // If the image fails to be downloaded, we don't want the whole system
+    // to collapse so we `resolve` instead of `reject`, even on error
+    image.onerror = resolve;
+    // Apply the path as `src` to the image so that the browser fetches it
+    image.src = path;
+  });
+};
