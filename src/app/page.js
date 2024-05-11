@@ -2,11 +2,14 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Diagram, { createSchema, useSchema } from "beautiful-react-diagrams";
-import { useIsMobile, useLocalStorage } from "./hooks";
+import { useEffectOnce, useIsMobile, useLocalStorage } from "./hooks";
 import { AudioRecorder } from "react-audio-voice-recorder";
 import bg from "../../public/images/medieval_town__free_wallpaper_by_a2a5_dfokr2n.png";
 import { toast } from "react-toastify";
 import { cloneDeep, uniqBy } from "lodash";
+import { ColorRing } from "react-loader-spinner";
+import { copyText } from "./helpers";
+import HelpModal from "./modals/HelpModal";
 
 /* export default function AudioR() {
   const addAudioElement = (blob) => {
@@ -43,7 +46,7 @@ import { cloneDeep, uniqBy } from "lodash";
             />
           </div> */
 
-const UncontrolledDiagram = () => {
+const UncontrolledDiagram = ({ storyIdParam }) => {
   const initialSchema = createSchema({
     nodes: [
       {
@@ -62,6 +65,10 @@ const UncontrolledDiagram = () => {
   const [storyId, setStoryId] = useLocalStorage("storyId", `${Date.now()}`);
   const isMobile = useIsMobile();
   const [storyState, setStoryState] = useState("Author");
+  const [isLoading, setIsLoading] = useState(false);
+  const [storyTitle, setStoryTitle] = useState("");
+  const [bgIndex, setBgIndex] = useState("");
+  const [showHelpModal, setShowHelpModal] = React.useState(false);
 
   const deleteNodeFromSchema = (id) => {
     try {
@@ -74,26 +81,104 @@ const UncontrolledDiagram = () => {
     }
   };
 
-  const save = async ({ payload }) => {
-    const response = await fetch("/.netlify/functions/savestory", {
-      method: "POST",
-      body: JSON.stringify({
-        ...payload,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    });
+  const save = async ({ payload, copyLink }) => {
+    try {
+      setIsLoading(true);
+      payload.storyData.nodes = uniqBy(payload.storyData.nodes, "id");
+      const response = await fetch("/.netlify/functions/savestory", {
+        method: "POST",
+        body: JSON.stringify({
+          ...payload,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
 
-    console.log(response);
+      console.log(response);
 
-    if (!response.ok) {
-      toast.error("Unable to save story");
-    } else {
-      toast("Story saved");
+      if (!response.ok) {
+        toast.error("Unable to save story");
+      } else {
+        toast("Story saved");
+        if (copyLink) {
+          copyText({
+            text: `${window.location.origin}/published/${payload.storyId}`,
+            toast,
+          });
+        }
+      }
+    } catch (err) {
+      toast.error(JSON.stringify(err));
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const getStory = async ({ storyIdParam }) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `/.netlify/functions/getstory/${storyIdParam}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      //  console.log(response);
+
+      if (!response.ok) {
+        toast.error("Unable to get story: Refresh");
+      } else {
+        // populate UI with read only mode
+        const data = await response.json();
+        // console.log(data);
+        // console.log(JSON.parse(data.storyFound));
+
+        const storyFound = JSON.parse(data.storyFound);
+        console.log(storyFound);
+        setStoryId(storyFound.storyId);
+        setBgIndex(storyFound?.bgIndex);
+
+        storyFound.storyData.nodes = storyFound.storyData.nodes.map((el) => {
+          return {
+            ...el,
+            ...(el.id !== "node-1"
+              ? {
+                  render: CustomRender,
+                  data: {
+                    ...el.data,
+                    storyState: "Reader",
+                    editMode: false,
+                  },
+                }
+              : {}),
+          };
+        });
+        console.log(storyFound.storyData, "Reader");
+        // clean up
+        onChange(storyFound.storyData);
+        setStoryTitle(storyFound.storyTitle);
+        setStoryState("Reader");
+      }
+    } catch (err) {
+      toast.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffectOnce(() => {
+    if (storyIdParam)
+      getStory({
+        storyIdParam,
+      });
+  });
 
   const CustomRender = ({ id, content, data, inputs, outputs }) => {
     const onFileSelected = (event) => {
@@ -134,6 +219,13 @@ const UncontrolledDiagram = () => {
         key={id}
         class="p-0 bg-white rounded-xl transform transition-all -hover:-translate-y-1 duration-300 shadow-lg hover:shadow-2xl relative pt-2"
         style={{ width: "17rem", overflow: "hidden" }}
+        /* onClick={(e) => {
+          if (e.detail === 2) {
+            const portId = e.target.getAttribute("data-port-id");
+
+            
+          }
+        }} */
       >
         {data?.storyState === "Author" && (
           <div className="absolute right-0 top-0 flex item-center gap-2 p-1 text-xs items-center bg-white">
@@ -306,10 +398,13 @@ const UncontrolledDiagram = () => {
               .map((port) =>
                 React.cloneElement(port, {
                   style: {
-                    width: "24px",
-                    height: "24px",
+                    width: "22px",
+                    height: "22px",
                     background: "rgb(186, 230, 253)",
                     borderBottomLeftRadius: "inherit",
+                    ...(data?.storyState === "Reader"
+                      ? { pointerEvents: "none" }
+                      : {}),
                   },
                 })
               )}
@@ -318,10 +413,13 @@ const UncontrolledDiagram = () => {
               .map((port) =>
                 React.cloneElement(port, {
                   style: {
-                    width: "24px",
-                    height: "24px",
+                    width: "22px",
+                    height: "22px",
                     background: "rgb(22, 78, 99)",
                     borderBottomRightRadius: "inherit",
+                    ...(data?.storyState === "Reader"
+                      ? { pointerEvents: "none" }
+                      : {}),
                   },
                 })
               )}{" "}
@@ -340,8 +438,8 @@ const UncontrolledDiagram = () => {
               .map((port) =>
                 React.cloneElement(port, {
                   style: {
-                    width: "24px",
-                    height: "24px",
+                    width: "22px",
+                    height: "22px",
                     background: "rgb(52, 211, 153)",
                     borderBottomLeftRadius: "inherit",
                   },
@@ -352,8 +450,8 @@ const UncontrolledDiagram = () => {
               .map((port) =>
                 React.cloneElement(port, {
                   style: {
-                    width: "24px",
-                    height: "24px",
+                    width: "22px",
+                    height: "22px",
                     background: "rgb(6, 78, 59)",
                     borderBottomRightRadius: "inherit",
                   },
@@ -417,6 +515,8 @@ const UncontrolledDiagram = () => {
             placeholder="Enter Story Title..."
             className="border h-8 px-1 text-md shadow-md"
             style={{ width: "400px" }}
+            value={storyTitle}
+            onChange={(e) => setStoryTitle(e.target.value)}
           />
           {storyState === "Author" && (
             <>
@@ -429,12 +529,14 @@ const UncontrolledDiagram = () => {
                 📝 <span className="hidden lg:inline">Add Paragraph</span>
               </button>
               <button
-                className="text-white bg-sky-500 px-3 py-1 rounded-sm hover:bg-purple-700 min-h-8 text-md shadow-md"
+                className="text-white bg-sky-800 px-3 py-1 rounded-sm hover:bg-purple-700 min-h-8 text-md shadow-md"
                 onClick={() =>
                   save({
                     payload: {
                       storyData: schema,
                       storyId,
+                      storyTitle,
+                      bgIndex,
                     },
                   })
                 }
@@ -443,11 +545,30 @@ const UncontrolledDiagram = () => {
               </button>
             </>
           )}
+          <button
+            className="text-black bg-sky-100 px-3 py-1 rounded-sm hover:bg-purple-700 min-h-8 text-md shadow-md"
+            type="button"
+            onClick={() => setShowHelpModal(true)}
+          >
+            ❔<span className="hidden lg:inline">Help</span>
+          </button>
         </div>
 
         <div className="flex gap-4">
           <select
-            className="min-w-20"
+            className="min-w-20 px-4"
+            /*     value={storyState}
+            onChange={(e) => {
+              setStoryState(e.target.value);
+            }} */
+            placeholder="Select Story Theme"
+          >
+            <option value={""}>Select Story Theme</option>
+            <option>Fantasy</option>
+            <option>Sci-fi</option>
+          </select>
+          <select
+            className="min-w-20 px-4"
             value={storyState}
             onChange={(e) => {
               setStoryState(e.target.value);
@@ -457,6 +578,11 @@ const UncontrolledDiagram = () => {
                   uniqBy(schema.nodes, "id").map((el) => {
                     if (el?.data) {
                       el.data.storyState = e.target.value;
+                      if (e.target.value !== "Reader") {
+                        el.data.editMode = true;
+                      } else {
+                        el.data.editMode = false;
+                      }
                     }
                     return { ...el };
                   })
@@ -474,11 +600,13 @@ const UncontrolledDiagram = () => {
                 payload: {
                   storyData: schema,
                   storyId,
+                  storyTitle,
+                  bgIndex,
                 },
               })
             }
           >
-            ▶️ <span className="hidden lg:inline">Read Selected</span>
+            ▶️ <span className="hidden lg:inline">Read Path</span>
           </button>
           <button
             className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md min-h-8 shadow-md"
@@ -487,7 +615,10 @@ const UncontrolledDiagram = () => {
                 payload: {
                   storyData: schema,
                   storyId,
+                  bgIndex,
+                  storyTitle,
                 },
+                copyLink: true,
               })
             }
           >
@@ -519,7 +650,7 @@ const UncontrolledDiagram = () => {
                   : "",
               }));
             } else {
-              d.links = [];
+              // d.links = [];
             }
 
             console.log(d);
@@ -527,14 +658,35 @@ const UncontrolledDiagram = () => {
           }}
         />
       </div>
+
+      {isLoading && (
+        <div
+          class="h-screen w-screen flex items-center justify-center fixed top-0 "
+          style={{ zIndex: "200" }}
+        >
+          <div className="bg-white rounded border shadow-lg p-4">
+            <ColorRing
+              visible={true}
+              height="80"
+              width="80"
+              ariaLabel="color-ring-loading"
+              wrapperStyle={{}}
+              wrapperClass="color-ring-wrapper"
+              colors={["#e15b64", "#f47e60", "#f8b26a", "#abbd81", "#849b87"]}
+            />
+          </div>
+        </div>
+      )}
+
+      <HelpModal showModal={showHelpModal} setShowModal={setShowHelpModal} />
     </div>
   );
 };
 
-export default function Home() {
+export default function Home({ storyIdParam }) {
   return (
     <main className="">
-      <UncontrolledDiagram />
+      <UncontrolledDiagram storyIdParam={storyIdParam} />
     </main>
   );
 }

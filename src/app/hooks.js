@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState, useEffect } from "react";
 import debounce from "lodash/debounce";
 
 export const useLocalStorage = (keyName, defaultValue) => {
@@ -41,3 +41,8 @@ export const useIsMobile = () => {
 
   return isMobile;
 };
+
+export function useEffectOnce(effect) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(effect, []);
+}

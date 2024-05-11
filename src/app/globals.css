@@ -8909,7 +8909,7 @@ body {
   .bi-link-canvas-layer
   .bi-diagram-link.reader-link-class
   .bi-link-path {
-  stroke: green;
+  stroke: #34d399;
 }
 
 .bi.bi-diagram .bi-link-canvas-layer .bi-diagram-link .bi-link-ghost {
@@ -8969,4 +8969,12 @@ body {
   to {
     stroke-dashoffset: 0;
   }
+}
+
+[data-port-id="port-Author"] {
+  background-color: rgb(22, 78, 99) !important;
+}
+
+[data-port-id="port-Reader"] {
+  background-color: rgb(6, 78, 59) !important;
 }
