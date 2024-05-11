@@ -314,7 +314,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
               )}
             </div>
 
-            {JSON.stringify(data.editMode)}
+            {/*  {JSON.stringify(data.editMode)} */}
 
             <label htmlFor={`editMode_${id}`} title="Edit">
               <input
