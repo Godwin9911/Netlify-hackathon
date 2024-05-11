@@ -561,11 +561,14 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
             onChange={(e) => {
               setStoryState(e.target.value);
             }} */
-            placeholder="Select Story Theme"
+            placeholder="Story Theme"
           >
-            <option value={""}>Select Story Theme</option>
-            <option>Fantasy</option>
-            <option>Sci-fi</option>
+            <option value={""}>Story Theme</option>
+            <option value={1}>Fantasy</option>
+            <option value={2}>Sci-fi</option>
+            <option value={3}>Crime</option>
+            <option value={4}>Thriller</option>
+            <option value={5}>Romance</option>
           </select>
           <select
             className="min-w-20 px-4"
