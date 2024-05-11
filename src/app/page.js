@@ -5,11 +5,18 @@ import Diagram, { createSchema, useSchema } from "beautiful-react-diagrams";
 import { useEffectOnce, useIsMobile, useLocalStorage } from "./hooks";
 import { AudioRecorder } from "react-audio-voice-recorder";
 import bg from "../../public/images/medieval_town__free_wallpaper_by_a2a5_dfokr2n.png";
+import bgFantasy from "../../public/images/medieval_town__free_wallpaper_by_a2a5_dfokr2n.png";
+import bgSciFi from "../../public/images/sci_fi_structures_2_by_dustycrosley_d8pmhlm.jpg";
+import bgCrime from "../../public/images/crime_scene_by_visibl3_db8krnj-pre.jpg";
+import bgThriller from "../../public/images/windmill___1__by_elleykhure_dhcbn6w-pre.jpg";
+import bgRomance from "../../public/images/ash_forest___by_elleykhure_dhdsr3e-pre.jpg";
+
 import { toast } from "react-toastify";
 import { cloneDeep, uniqBy } from "lodash";
 import { ColorRing } from "react-loader-spinner";
 import { copyText, imagePreloader } from "./helpers";
 import HelpModal from "./modals/HelpModal";
+import SampleStoriesModal from "./modals/SampleStoriesModal";
 
 /* export default function AudioR() {
   const addAudioElement = (blob) => {
@@ -47,6 +54,7 @@ import HelpModal from "./modals/HelpModal";
           </div> */
 
 const UncontrolledDiagram = ({ storyIdParam }) => {
+  const bgImages = [bg, bgFantasy, bgSciFi, bgCrime, bgThriller, bgRomance];
   const initialSchema = createSchema({
     nodes: [
       {
@@ -67,8 +75,9 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
   const [storyState, setStoryState] = useState("Author");
   const [isLoading, setIsLoading] = useState(false);
   const [storyTitle, setStoryTitle] = useState("");
-  const [bgIndex, setBgIndex] = useState("");
+  const [bgIndex, setBgIndex] = useState(0);
   const [showHelpModal, setShowHelpModal] = React.useState(false);
+  const [showSampleStoryModal, setShowSampleStoryModal] = React.useState(false);
 
   const deleteNodeFromSchema = (id) => {
     try {
@@ -415,7 +424,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
                   style: {
                     width: "22px",
                     height: "22px",
-                    background: "rgb(22, 78, 99)",
+                    background: "#075985",
                     borderBottomRightRadius: "inherit",
                     ...(data?.storyState === "Reader"
                       ? { pointerEvents: "none" }
@@ -494,10 +503,11 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
     addNode(nextNode);
   };
 
-  const setBgImage = async ({ url }) => {
+  const setBgImage = async ({ url, index }) => {
     try {
       setIsLoading(true);
       await imagePreloader(url);
+      setBgIndex(index);
     } catch (err) {
       console.log(err);
     } finally {
@@ -509,7 +519,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
     <div
       style={{
         overflow: "auto",
-        backgroundImage: `url(${bg.src})`,
+        backgroundImage: `url(${bgImages[bgIndex]?.src})`,
         backgroundRepeat: "no-repeat",
         backgroundAttachment: "fixed",
         backgroundPosition: "center",
@@ -563,18 +573,29 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
           >
             ❔<span className="hidden lg:inline">Help</span>
           </button>
+          <button
+            className="text-black bg-sky-100 px-3 py-1 rounded-sm hover:bg-purple-700 min-h-8 text-md shadow-md"
+            type="button"
+            onClick={() => setShowSampleStoryModal(true)}
+          >
+            🗣️ <span className="hidden lg:inline">Sample Stories</span>
+          </button>
         </div>
 
         <div className="flex gap-4">
           <select
             className="min-w-20 px-4"
-            /*     value={storyState}
+            value={bgIndex}
             onChange={(e) => {
-              setStoryState(e.target.value);
-            }} */
+              setBgImage({
+                url: bgImages[e.target.value]?.src,
+                index: e.target.value,
+              });
+            }}
+            disabled={isLoading || (storyState === "Reader" && storyIdParam)}
             placeholder="Story Theme"
           >
-            <option value={""}>Story Theme</option>
+            <option value={0}>Story Theme</option>
             <option value={1}>Fantasy</option>
             <option value={2}>Sci-fi</option>
             <option value={3}>Crime</option>
@@ -583,6 +604,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
           </select>
           <select
             className="min-w-20 px-4"
+            disabled={isLoading || (storyState === "Reader" && storyIdParam)}
             value={storyState}
             onChange={(e) => {
               setStoryState(e.target.value);
@@ -607,37 +629,41 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
             <option>Author</option>
             <option>Reader</option>
           </select>
-          <button
-            className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md min-h-8 shadow-md"
-            onClick={() =>
-              save({
-                payload: {
-                  storyData: schema,
-                  storyId,
-                  storyTitle,
-                  bgIndex,
-                },
-              })
-            }
-          >
-            ▶️ <span className="hidden lg:inline">Read Path</span>
-          </button>
-          <button
-            className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md min-h-8 shadow-md"
-            onClick={() =>
-              save({
-                payload: {
-                  storyData: schema,
-                  storyId,
-                  bgIndex,
-                  storyTitle,
-                },
-                copyLink: true,
-              })
-            }
-          >
-            📄 <span className="hidden lg:inline">Publish</span>
-          </button>
+
+          {storyState === "Author" ? (
+            <button
+              className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md min-h-8 shadow-md"
+              onClick={() =>
+                save({
+                  payload: {
+                    storyData: schema,
+                    storyId,
+                    bgIndex,
+                    storyTitle,
+                  },
+                  copyLink: true,
+                })
+              }
+            >
+              📄 <span className="hidden lg:inline">Publish</span>
+            </button>
+          ) : (
+            <button
+              className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md min-h-8 shadow-md"
+              onClick={() =>
+                save({
+                  payload: {
+                    storyData: schema,
+                    storyId,
+                    storyTitle,
+                    bgIndex,
+                  },
+                })
+              }
+            >
+              ▶️ <span className="hidden lg:inline">Read Path</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -647,7 +673,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
           height: "calc(100vh * 3)",
           // overflow: "auto",
         }}
-        title={`${schema?.nodes?.length}_${storyState}`}
+        //   title={`${schema?.nodes?.length}_${storyState}`}
       >
         <Diagram
           key={`${schema?.nodes?.length}_${storyState}`}
@@ -693,6 +719,10 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
       )}
 
       <HelpModal showModal={showHelpModal} setShowModal={setShowHelpModal} />
+      <SampleStoriesModal
+        showModal={showSampleStoryModal}
+        setShowModal={setShowSampleStoryModal}
+      />
     </div>
   );
 };

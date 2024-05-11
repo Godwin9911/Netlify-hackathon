@@ -1,7 +1,8 @@
 "use client";
 import React from "react";
 
-export default function HelpModal({ showModal, setShowModal }) {
+export default function SampleStoriesModal({ showModal, setShowModal }) {
+  const stories = [];
   return (
     <>
       {showModal ? (
@@ -15,7 +16,7 @@ export default function HelpModal({ showModal, setShowModal }) {
               <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                 {/*header*/}
                 <div className="flex items-start justify-between p-5 border-b border-solid border-blueGray-200 rounded-t">
-                  <h3 className="text-3xl font-semibold">❔Help </h3>
+                  <h3 className="text-3xl font-semibold">Sample Stories </h3>
                   <button
                     className="p-1 ml-auto bg-transparent border-0 text-black opacity-5 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
                     onClick={() => setShowModal(false)}
@@ -28,59 +29,25 @@ export default function HelpModal({ showModal, setShowModal }) {
                 {/*body*/}
                 <div className="relative p-6 flex-auto">
                   <div className="my-4 text-blueGray-500 text-lg leading-relaxed">
-                    <p>
-                      <div className="flex gap-4">
-                        <div>
-                          In:
-                          <div
-                            className="h-4 w-4"
-                            style={{ backgroundColor: "#BAE6FD" }}
-                          ></div>
-                        </div>
-                        <div>
-                          Out:
-                          <div
-                            className="h-4 w-4"
-                            style={{ backgroundColor: "#075985" }}
-                          ></div>
-                        </div>
-                      </div>{" "}
-                      👤
-                      <b>Author:</b> Creates the Story by Connecting Paths
-                      between cards. <br /> Can attach
-                      <ol className="text-sm flex gap-2">
-                        <li>Image</li>
-                        <li>Text</li>
-                        <li>Audio</li>
-                      </ol>
-                      to make the story.
-                      <br />
-                      Click Paths to unconnect cards
+                    <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                      Connect with one of our available wallet providers or
+                      create a new one.
                     </p>
-
-                    <hr className="my-8" />
-                    <p>
-                      <div className="flex gap-4">
-                        <div>
-                          In:
-                          <div
-                            className="h-4 w-4"
-                            style={{ backgroundColor: "#34D399" }}
-                          ></div>
-                        </div>
-                        <div>
-                          Out:
-                          <div
-                            className="h-4 w-4"
-                            style={{ backgroundColor: "#064E3B" }}
-                          ></div>
-                        </div>
-                      </div>
-                      👤
-                      <b>Reader:</b> Follows Story by Connecting Cards. <br />
-                      Can't unconnect cards user must progress
-                    </p>
-                    <hr className="my-8" />
+                    <ul class="my-4 space-y-3">
+                      <li>
+                        <a
+                          href="#"
+                          class="flex items-center p-3 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white"
+                        >
+                          <span class="flex-1 ms-3 whitespace-nowrap">
+                            MetaMask
+                          </span>
+                          <span class="inline-flex items-center justify-center px-2 py-0.5 ms-3 text-xs font-medium text-gray-500 bg-gray-200 rounded dark:bg-gray-700 dark:text-gray-400">
+                            Popular
+                          </span>
+                        </a>
+                      </li>
+                    </ul>
                   </div>
                 </div>
                 {/*footer*/}
