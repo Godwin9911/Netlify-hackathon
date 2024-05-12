@@ -283,9 +283,9 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
         });
 
         if (!response.ok) {
-          toast.error("Unable to save story");
+          toast.error("Unable to save file");
         } else {
-          toast("Saved");
+          toast("File Saved");
           onChange(
             schema.nodes.map((el) => {
               if (el.id == id) {
@@ -462,6 +462,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
               <input
                 id={`file_${id}`}
                 type="file"
+                accept="image/*"
                 className="hidden"
                 onChange={(e) => onFileSelected(e)}
               />
