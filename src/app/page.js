@@ -738,14 +738,14 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
       className="text-md w-screen nh-screen"
       key={bgIndex}
     >
-      {JSON.stringify(bgImages[bgIndex]?.src)}
+      {/* {JSON.stringify(bgImages[bgIndex]?.src)} */}
       <div
         className="fixed top-0 left-0 flex p-2 items-center justify-between gap-4 w-full backdrop-blur-sm"
         style={{ zIndex: "100" }}
       >
         <div className="flex justify-between gap-4">
           <div className="w-8">
-            <img src="logo.svg" />
+            <img src="/logo.svg" />
           </div>
           <input
             placeholder="Enter Story Title..."
