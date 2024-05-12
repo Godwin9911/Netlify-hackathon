@@ -417,5 +417,5 @@ export const sciFiSample = {
   },
   storyId: "1715269266765",
   storyTitle: "",
-  bgIndex: 0,
+  bgIndex: 2,
 };
