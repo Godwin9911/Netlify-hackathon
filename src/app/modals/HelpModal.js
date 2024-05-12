@@ -78,7 +78,7 @@ export default function HelpModal({ showModal, setShowModal }) {
                       </div>
                       👤
                       <b>Reader:</b> Follows Story by Connecting Cards. <br />
-                      Can't unconnect cards user must progress
+                      Cannot unconnect cards user must progress
                     </p>
                     <hr className="my-8" />
                   </div>
