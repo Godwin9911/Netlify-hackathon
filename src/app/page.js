@@ -807,7 +807,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
             value={bgIndex}
             onChange={(e) => {
               setBgImage({
-                url: bgImages[e.target.value]?.src,
+                url: `/.netlify/images?url=${bgImages[e.target.value]?.src}`,
                 index: e.target.value,
               });
             }}

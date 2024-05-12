@@ -22,6 +22,7 @@ export const imagePreloader = (path) => {
     image.onerror = resolve;
     // Apply the path as `src` to the image so that the browser fetches it
     image.src = path;
+    console.log(path);
   });
 };
 
