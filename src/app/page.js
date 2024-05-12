@@ -935,20 +935,25 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
         </div>
       )}
 
-      <HelpModal showModal={showHelpModal} setShowModal={setShowHelpModal} />
+      {showHelpModal && (
+        <HelpModal showModal={showHelpModal} setShowModal={setShowHelpModal} />
+      )}
       {showSummaryModal && (
         <SummaryModal
           showModal={showSummaryModal}
           setShowModal={setShowSummaryModal}
           schema={schemaRef.current}
+          storyTitle={storyTitle}
         />
       )}
-      <SampleStoriesModal
-        showModal={showSampleStoryModal}
-        setShowModal={setShowSampleStoryModal}
-        addNode={addNode}
-        populateData={populateData}
-      />
+      {showSampleStoryModal && (
+        <SampleStoriesModal
+          showModal={showSampleStoryModal}
+          setShowModal={setShowSampleStoryModal}
+          addNode={addNode}
+          populateData={populateData}
+        />
+      )}
     </div>
   );
 };

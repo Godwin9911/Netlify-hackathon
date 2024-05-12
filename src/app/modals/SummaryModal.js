@@ -2,7 +2,12 @@
 import React, { useMemo } from "react";
 import { arti } from "../font";
 
-export default function SummaryModal({ showModal, setShowModal, schema }) {
+export default function SummaryModal({
+  showModal,
+  setShowModal,
+  schema,
+  storyTitle = "",
+}) {
   const selectedNodes = useMemo(() => {
     const inputs = schema.links?.filter((link) =>
       link.input.includes("Reader")
@@ -55,6 +60,9 @@ export default function SummaryModal({ showModal, setShowModal, schema }) {
                   className={`relative p-4 flex-auto ${arti.className}`}
                   style={{ height: "70vh", minWidth: "30vw", overflow: "auto" }}
                 >
+                  <h4 className="text-2xl font-semibold mb-4 text-center">
+                    {storyTitle}
+                  </h4>
                   <div className="my-0 text-blueGray-500 text-lg leading-relaxed">
                     {selectedNodes.map(({ data }, index) => (
                       <div

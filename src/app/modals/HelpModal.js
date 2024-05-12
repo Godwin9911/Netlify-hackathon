@@ -1,5 +1,7 @@
 "use client";
 import React from "react";
+import readerImg from "../../../public/images/ezgif-1-f4a6ab551d.gif";
+import authorImg from "../../../public/images/author_help.png";
 
 export default function HelpModal({ showModal, setShowModal }) {
   return (
@@ -8,7 +10,7 @@ export default function HelpModal({ showModal, setShowModal }) {
         <>
           <div
             className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
-            style={{ zIndex: "200" }}
+            style={{ zIndex: "2000" }}
           >
             <div className="relative w-auto my-6 mx-auto max-w-3xl">
               {/*content*/}
@@ -26,7 +28,10 @@ export default function HelpModal({ showModal, setShowModal }) {
                   </button>
                 </div>
                 {/*body*/}
-                <div className="relative p-4 flex-auto">
+                <div
+                  className="relative p-4 flex-auto"
+                  style={{ height: "70vh", minWidth: "30vw", overflow: "auto" }}
+                >
                   <div className="my-0 text-blueGray-500 text-lg leading-relaxed">
                     <p>
                       <div className="flex gap-4">
@@ -57,6 +62,12 @@ export default function HelpModal({ showModal, setShowModal }) {
                       <br />
                       Click Paths to unconnect cards
                     </p>
+                    <img
+                      src={authorImg.src}
+                      className="my-4"
+                      alt="author"
+                      width={400}
+                    />
 
                     <hr className="my-8" />
                     <p>
@@ -80,6 +91,13 @@ export default function HelpModal({ showModal, setShowModal }) {
                       <b>Reader:</b> Follows Story by Connecting Cards. <br />
                       Cannot unconnect cards user must progress
                     </p>
+
+                    <img
+                      src={readerImg.src}
+                      className="my-4"
+                      alt="reader"
+                      width={400}
+                    />
                     <hr className="my-8" />
                   </div>
                 </div>
@@ -105,7 +123,7 @@ export default function HelpModal({ showModal, setShowModal }) {
           </div>
           <div
             className="opacity-40 fixed inset-0 z-40 bg-black"
-            style={{ zIndex: "199" }}
+            style={{ zIndex: "1999" }}
             onClick={() => setShowModal(false)}
           ></div>
         </>
