@@ -12,13 +12,14 @@ import bgThriller from "../../public/images/windmill___1__by_elleykhure_dhcbn6w-
 import bgRomance from "../../public/images/ash_forest___by_elleykhure_dhdsr3e-pre.jpg";
 
 import { toast } from "react-toastify";
-import { cloneDeep, uniqBy } from "lodash";
+import { cloneDeep, isEmpty, uniqBy } from "lodash";
 import { ColorRing } from "react-loader-spinner";
 import { copyText, imagePreloader, waitFor } from "./helpers";
 import HelpModal from "./modals/HelpModal";
 import SampleStoriesModal from "./modals/SampleStoriesModal";
 import { HexColorPicker } from "react-colorful";
 import SummaryModal from "./modals/SummaryModal";
+import { arti } from "./font";
 
 /* export default function AudioR() {
   const addAudioElement = (blob) => {
@@ -61,7 +62,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
     nodes: [
       {
         id: "node-1",
-        content: "Start Adventure...",
+        content: "🟢 Start Here !",
         coordinates: [60, 60],
         outputs: [
           { id: "port-Author", alignment: "right" },
@@ -129,6 +130,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
             text: `${window.location.origin}/published/${payload.storyId}`,
             toast,
           });
+          window.open(`${window.location.origin}/published/${payload.storyId}`);
         }
       }
     } catch (err) {
@@ -143,6 +145,9 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
     storyState = "Reader",
     editMode = false,
   }) => {
+    if (isEmpty(storyFound)) {
+      return;
+    }
     console.log(storyFound, "kk");
     setStoryId(storyFound.storyId);
     setBgIndex(storyFound?.bgIndex);
@@ -258,17 +263,46 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
         storyIdParam,
       });
     } else {
-      /* getStory({
+      getStory({
         storyIdParam: storyId,
         storyState: "Author",
         editMode: true,
-      }); */
+      });
     }
   });
 
   const CustomRender = ({ id, content, data, inputs, outputs }) => {
     const [, forceUpdate] = useReducer((x) => x + 1, 0);
-    const onFileSelected = (event) => {
+
+    const savefile = async ({ fileId, blob, dataKey = "blob" }) => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/.netlify/functions/savefile/${fileId}`, {
+          method: "POST",
+          body: blob,
+        });
+
+        if (!response.ok) {
+          toast.error("Unable to save story");
+        } else {
+          toast("Saved");
+          onChange(
+            schema.nodes.map((el) => {
+              if (el.id == id) {
+                el.data[dataKey] = fileId;
+              }
+              return { ...el };
+            })
+          );
+        }
+      } catch (err) {
+        toast.error(JSON.stringify(err));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const onFileSelected = async (event) => {
       const selectedFile = event.target?.files[0];
       if (!selectedFile) return;
 
@@ -279,30 +313,22 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
           type: selectedFile.type,
         });
 
-        onChange(
-          schema.nodes.map((el) => {
-            if (el.id == id) {
-              el.data.blob = blob;
-            }
-            return { ...el };
-          })
-        );
+        savefile({
+          fileId: `${Date.now()}_${parseInt(Math.random() * 10000)}`,
+          blob,
+        });
       };
     };
 
     const addAudioElement = (blob) => {
-      onChange(
-        schema.nodes.map((el) => {
-          if (el.id == id) {
-            el.data.blobAudio = blob;
-          }
-          return { ...el };
-        })
-      );
+      savefile({
+        fileId: `${Date.now()}_${parseInt(Math.random() * 10000)}`,
+        blob,
+        dataKey: "blobAudio",
+      });
     };
 
     const setColor = (color) => {
-      console.log(color);
       onChange(
         schema.nodes.map((el) => {
           if (el.id == id) {
@@ -416,28 +442,38 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
           </div>
         )}
         <div className="p-2">
-          {data?.blob && (
-            <div className="flex justify-center">
+          {data?.blob ? (
+            <div className="flex justify-center px-2">
               <img
-                class="h-40 object-cover rounded-xl"
+                class="object-cover h-28 w-full"
                 //  src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=750&q=80"
-                src={data?.blob ? URL.createObjectURL(data.blob) : ""}
+                // src={data?.blob ? URL.createObjectURL(data.blob) : ""}
+                src={`/.netlify/functions/getfile/${data?.blob}`}
                 alt=""
               />
             </div>
-          )}
+          ) : null}
 
           {data.editMode && (
-            <input
-              type="file"
-              className="mx-2 border rounded w-full p-1"
-              onChange={(e) => onFileSelected(e)}
-            />
+            <label
+              htmlFor={`file_${id}`}
+              className="mx-2 border rounded w-full p-1 text-sm bg-slate-50"
+            >
+              <input
+                id={`file_${id}`}
+                type="file"
+                className="hidden"
+                onChange={(e) => onFileSelected(e)}
+              />
+              + Add Image
+            </label>
           )}
 
           <div class="p-2 pb-0 mb-0">
             {!data.editMode ? (
-              <h2 class="font-bold text-md mb-2 p-1">{data.title || "..."}</h2>
+              <h2 class={`font-bold text-md mb-2 p-1 ${arti.className}`}>
+                {data.title || "..."}
+              </h2>
             ) : (
               <input
                 className="border rounded mb-2 font-bold  text-md p-1"
@@ -461,7 +497,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
             {!data.editMode ? (
               <p
                 key={schema.links?.length}
-                class={`text-xs text-gray-600 p-1 ${
+                class={`text-xs text-gray-600 p-1 ${arti.className} ${
                   data.storyState === "Reader" && !canShowText ? "hidden" : ""
                 }`}
               >
@@ -512,9 +548,11 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
               )}
               {data?.blobAudio && (
                 <audio
-                  src={URL.createObjectURL(data.blobAudio)}
+                  src={`/.netlify/functions/getfile/${data?.blobAudio}`}
                   controls
-                  className="mt-2 w-full"
+                  className={`mt-2 w-full ${
+                    data.storyState === "Reader" && !canShowText ? "hidden" : ""
+                  }`}
                 />
               )}{" "}
             </div>
@@ -540,6 +578,19 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
                 </button>
               </div>
             )}
+
+            {data?.title?.includes("Epilogue") && canShowText ? (
+              <div class="mt-2">
+                <button
+                  role="button"
+                  href="#"
+                  class="text-white bg-gray-500  px-3 py-1 rounded-sm hover:bg-purple-700 text-xs"
+                  onClick={() => setShowSummaryModal(true)}
+                >
+                  ▶️ <span className="hidden lg:inline">Read Path Summary</span>
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
         <div className="rounded-xl w-full">
@@ -603,25 +654,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
                     borderBottomLeftRadius: "inherit",
                   },
                   onClick: () => forceUpdate(),
-                  // onMouseEnter: (e) => {
-                  // forceUpdate();
-                  /*   console.log(
-                      "checked-input",
-                      data?.title,
-                      e,
-                      e.clientX,
-                      e.clientY
-                    );
-
-                    let elem = document.elementFromPoint(e.clientX, e.clientY);
-                    console.log(elem, "fjfj"); */
-                  //  },
                   onMouseUp: async (e) => {
-                    /* let elem = document.elementFromPoint(e.clientX, e.clientY);
-                    console.log(elem, "fjfj");
-                    console.log("uped"); */
-                    // elem.click();
-
                     await waitFor(500);
                     forceUpdate();
                   },
@@ -684,7 +717,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
     try {
       setIsLoading(true);
       await imagePreloader(url);
-      setBgIndex(index);
+      setBgIndex(Number(index));
     } catch (err) {
       console.log(err);
     } finally {
@@ -696,14 +729,16 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
     <div
       style={{
         //  overflow: "auto",
-        backgroundImage: `url(${bgImages[bgIndex]?.src})`,
+        backgroundImage: `url('/.netlify/images?url=${bgImages[bgIndex]?.src}')`,
         backgroundRepeat: "no-repeat",
         backgroundAttachment: "fixed",
         backgroundPosition: "center",
         backgroundSize: "cover",
       }}
       className="text-md w-screen nh-screen"
+      key={bgIndex}
     >
+      {JSON.stringify(bgImages[bgIndex]?.src)}
       <div
         className="fixed top-0 left-0 flex p-2 items-center justify-between gap-4 w-full backdrop-blur-sm"
         style={{ zIndex: "100" }}
@@ -726,6 +761,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
                 onClick={() =>
                   addNewNode({ uniqueKey: `${Date.now()}_${Math.random()}` })
                 }
+                title="Add a story branch"
               >
                 📝 <span className="hidden lg:inline">Add Paragraph</span>
               </button>
@@ -741,6 +777,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
                     },
                   })
                 }
+                title="Save to Netlify"
               >
                 💾<span className="hidden lg:inline">Save</span>
               </button>
@@ -750,6 +787,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
             className="text-black bg-sky-100 px-3 py-1 rounded-sm hover:bg-purple-700 min-h-8 text-md shadow-md"
             type="button"
             onClick={() => setShowHelpModal(true)}
+            title="Need Help ?"
           >
             ❔<span className="hidden lg:inline">Help</span>
           </button>
@@ -757,6 +795,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
             className="text-black bg-sky-100 px-3 py-1 rounded-sm hover:bg-purple-700 min-h-8 text-md shadow-md"
             type="button"
             onClick={() => setShowSampleStoryModal(true)}
+            title="Checkout a sample story"
           >
             🗣️ <span className="hidden lg:inline">Sample Stories</span>
           </button>
@@ -824,6 +863,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
                   copyLink: true,
                 })
               }
+              title="Story will be saved and a link will be generated"
             >
               📄 <span className="hidden lg:inline">Publish</span>
             </button>

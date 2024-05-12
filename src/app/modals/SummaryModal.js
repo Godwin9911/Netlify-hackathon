@@ -1,5 +1,6 @@
 "use client";
 import React, { useMemo } from "react";
+import { arti } from "../font";
 
 export default function SummaryModal({ showModal, setShowModal, schema }) {
   const selectedNodes = useMemo(() => {
@@ -34,23 +35,26 @@ export default function SummaryModal({ showModal, setShowModal, schema }) {
             className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
             style={{ zIndex: "200" }}
           >
-            <div className="relative w-auto my-6 mx-auto max-w-3xl">
+            <div className="relative w-auto my-6 mx-auto min-w-3xl max-w-3xl">
               {/*content*/}
               <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                 {/*header*/}
                 <div className="flex items-start justify-between p-5 border-b border-solid border-blueGray-200 rounded-t">
                   <h3 className="text-3xl font-semibold">📄 Summary </h3>
                   <button
-                    className="p-1 ml-auto bg-transparent border-0 text-black opacity-5 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
+                    className="p-1 ml-auto bg-transparent border-0 text-black  float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
                     onClick={() => setShowModal(false)}
                   >
-                    <span className="bg-transparent text-black opacity-5 h-6 w-6 text-2xl block outline-none focus:outline-none">
+                    <span className="bg-transparent text-black  h-6 w-6 text-2xl block outline-none focus:outline-none">
                       ×
                     </span>
                   </button>
                 </div>
                 {/*body*/}
-                <div className="relative p-4 flex-auto">
+                <div
+                  className={`relative p-4 flex-auto ${arti.className}`}
+                  style={{ height: "70vh", minWidth: "30vw", overflow: "auto" }}
+                >
                   <div className="my-0 text-blueGray-500 text-lg leading-relaxed">
                     {selectedNodes.map(({ data }, index) => (
                       <div
@@ -61,28 +65,25 @@ export default function SummaryModal({ showModal, setShowModal, schema }) {
                           {data?.blob && (
                             <div className="flex justify-center">
                               <img
-                                class="h-40 object-cover rounded-xl"
+                                class="object-cover h-40 w-full"
                                 //  src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=750&q=80"
-                                src={
-                                  data?.blob
-                                    ? URL.createObjectURL(data.blob)
-                                    : ""
-                                }
+                                // src={data?.blob ? URL.createObjectURL(data.blob) : ""}
+                                src={`/.netlify/functions/getfile/${data?.blob}`}
                                 alt=""
                               />
                             </div>
                           )}
 
                           <div class="p-2 pb-0 mb-0">
-                            {/*   <h2 class="font-bold text-md mb-2 p-1">
+                            <h2 class="font-bold text-md mb-2 p-1 text-md">
                               {data.title || "..."}
-                            </h2> */}
+                            </h2>
                             <p class={` text-gray-600 p-1`}>
                               {data.paragraph || "..."}
                             </p>
                             {data?.blobAudio && (
                               <audio
-                                src={URL.createObjectURL(data.blobAudio)}
+                                src={`/.netlify/functions/getfile/${data?.blobAudio}`}
                                 controls
                                 className="mt-2 w-full"
                               />

@@ -8809,6 +8809,10 @@ body {
   min-width: 17rem;
   background-color: none;
 }
+
+.bi.bi-diagram .bi.bi-diagram-node.bi-diagram-node-default {
+  min-width: 8rem;
+}
 .bi.bi-diagram .bi.bi-diagram-node .bi-port-wrapper {
   display: flex;
   /* stylelint-disable-next-line no-descending-specificity */
