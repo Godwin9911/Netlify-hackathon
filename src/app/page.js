@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import Image from "next/image";
 import Diagram, { createSchema, useSchema } from "beautiful-react-diagrams";
 import { useEffectOnce, useIsMobile, useLocalStorage } from "./hooks";
@@ -18,6 +18,7 @@ import { copyText, imagePreloader, waitFor } from "./helpers";
 import HelpModal from "./modals/HelpModal";
 import SampleStoriesModal from "./modals/SampleStoriesModal";
 import { HexColorPicker } from "react-colorful";
+import SummaryModal from "./modals/SummaryModal";
 
 /* export default function AudioR() {
   const addAudioElement = (blob) => {
@@ -79,7 +80,14 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
   const [bgIndex, setBgIndex] = useState(0);
   const [showHelpModal, setShowHelpModal] = React.useState(false);
   const [showSampleStoryModal, setShowSampleStoryModal] = React.useState(false);
+  const [showSummaryModal, setShowSummaryModal] = React.useState(false);
   const [time, setTime] = useState(Date.now());
+  const schemaRef = useRef();
+
+  useEffect(() => {
+    schemaRef.current = schema;
+    console.log("Ref", schemaRef);
+  }, [cloneDeep(schema)]);
 
   const deleteNodeFromSchema = (id) => {
     try {
@@ -130,6 +138,62 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
     }
   };
 
+  const populateData = async ({
+    storyFound,
+    storyState = "Reader",
+    editMode = false,
+  }) => {
+    console.log(storyFound, "kk");
+    setStoryId(storyFound.storyId);
+    setBgIndex(storyFound?.bgIndex);
+    setStoryTitle(storyFound.storyTitle);
+    setStoryState(storyState);
+
+    storyFound.storyData.nodes = storyFound.storyData.nodes.map((el) => {
+      // console.log(el);
+      return {
+        ...el,
+        ...(el.id !== "node-1"
+          ? {
+              render: CustomRender,
+              data: {
+                ...el.data,
+                storyState,
+                editMode,
+                color: el.data?.color ? el.data?.color : "#DAE1E7",
+              },
+            }
+          : {}),
+      };
+    });
+    //  console.log(storyFound.storyData, "Reader");
+
+    /*  console.log(
+      storyFound.storyData.nodes.filter((el, index) => index !== 0)
+    ); */
+
+    // Reset
+
+    await storyFound.storyData.nodes
+      .filter((el, index) => index !== 0)
+      .reduce(
+        (p, node) =>
+          new Promise(async (resolve) => {
+            //  console.log(node);
+            addNode(node);
+            await waitFor(100);
+            return resolve();
+          }),
+        Promise.resolve()
+      );
+
+    await waitFor(1000);
+    if (storyFound.storyData?.links)
+      onChange({
+        links: storyFound.storyData.links,
+      });
+  };
+
   const getStory = async ({
     storyIdParam,
     storyState = "Reader",
@@ -159,49 +223,11 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
         // console.log(JSON.parse(data.storyFound));
 
         const storyFound = JSON.parse(data.storyFound);
-        console.log(storyFound, "kk");
-        setStoryId(storyFound.storyId);
-        setBgIndex(storyFound?.bgIndex);
-        setStoryTitle(storyFound.storyTitle);
-        setStoryState(storyState);
-
-        storyFound.storyData.nodes = storyFound.storyData.nodes.map((el) => {
-          console.log(el);
-          return {
-            ...el,
-            ...(el.id !== "node-1"
-              ? {
-                  render: CustomRender,
-                  data: {
-                    ...el.data,
-                    storyState,
-                    editMode,
-                    color: el.data?.color ? el.data?.color : "#DAE1E7",
-                  },
-                }
-              : {}),
-          };
+        populateData({
+          storyFound,
+          storyState,
+          editMode,
         });
-        //  console.log(storyFound.storyData, "Reader");
-
-        console.log(
-          storyFound.storyData.nodes.filter((el, index) => index !== 0)
-        );
-
-        await storyFound.storyData.nodes
-          .filter((el, index) => index !== 0)
-          .reduce(
-            (p, node) =>
-              new Promise(async (resolve) => {
-                console.log(node);
-                addNode(node);
-                await waitFor(100);
-                return resolve();
-              }),
-            Promise.resolve()
-          );
-
-        // onChange(createSchema(storyFound.storyData));
       }
     } catch (err) {
       toast.error(err);
@@ -216,15 +242,16 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
         storyIdParam,
       });
     } else {
-      getStory({
+      /* getStory({
         storyIdParam: storyId,
         storyState: "Author",
         editMode: true,
-      });
+      }); */
     }
   });
 
   const CustomRender = ({ id, content, data, inputs, outputs }) => {
+    const [, forceUpdate] = useReducer((x) => x + 1, 0);
     const onFileSelected = (event) => {
       const selectedFile = event.target?.files[0];
       if (!selectedFile) return;
@@ -272,9 +299,29 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
 
     const [picker, setShowPicker] = useState(false);
 
+    /* useEffect(() => {
+      console.log(schemaRef.current, "sks");
+    }, [schemaRef.current]); */
+
+    const canShowText = useMemo(() => {
+      if (!inputs) return false;
+      const links = schemaRef.current.links?.filter(
+        (link) =>
+          link.input.includes("Reader") || link.output.includes("Reader")
+      );
+
+      const set = [
+        ...inputs?.filter((port) => port?.key && port?.key?.includes("Reader")),
+        ...outputs?.filter(
+          (port) => port?.key && port?.key?.includes("Reader")
+        ),
+      ].find((port) => links.find((link) => link.input === port.key));
+
+      return Boolean(set);
+    }, [inputs, outputs, schemaRef.current?.links]);
+
     return (
       <div
-        key={id}
         class="p-0 bg-white rounded-xl transform transition-all -hover:-translate-y-1 duration-300 shadow-lg hover:shadow-2xl relative pt-2"
         style={{
           width: "17rem",
@@ -289,6 +336,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
           }
         }} */
       >
+        {/*   {`${canShowText}`} */}
         {data?.storyState === "Author" && (
           <div className="absolute right-0 top-0 flex item-center gap-2 p-1 text-xs items-center bg-white">
             <button
@@ -371,7 +419,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
             />
           )}
 
-          <div class="p-2 mb-4">
+          <div class="p-2 pb-0 mb-0">
             {!data.editMode ? (
               <h2 class="font-bold text-md mb-2 p-1">{data.title || "..."}</h2>
             ) : (
@@ -393,8 +441,14 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
             )}
 
             {/*  {content} */}
+            {/*   {JSON.stringify(schema.links)} */}
             {!data.editMode ? (
-              <p class="text-xs text-gray-600 line-clamp-3 p-1">
+              <p
+                key={schema.links?.length}
+                class={`text-xs text-gray-600 p-1 ${
+                  data.storyState === "Reader" && !canShowText ? "hidden" : ""
+                }`}
+              >
                 {data.paragraph || "..."}
               </p>
             ) : (
@@ -416,7 +470,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
               ></textarea>
             )}
 
-            <div className="mt-4">
+            <div className="mt-2">
               {data.editMode && (
                 <AudioRecorder
                   onRecordingComplete={addAudioElement}
@@ -444,13 +498,13 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
                 <audio
                   src={URL.createObjectURL(data.blobAudio)}
                   controls
-                  className="mt-4 w-full"
+                  className="mt-2 w-full"
                 />
               )}{" "}
             </div>
 
             {data.editMode && (
-              <div class="m-2">
+              <div class="mt-2">
                 <button
                   role="button"
                   href="#"
@@ -472,7 +526,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
             )}
           </div>
         </div>
-        <div className="absolute bottom-0 rounded-xl w-full">
+        <div className="rounded-xl w-full">
           <div
             style={{
               marginTop: "10px",
@@ -532,6 +586,29 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
                     background: "rgb(52, 211, 153)",
                     borderBottomLeftRadius: "inherit",
                   },
+                  onClick: () => forceUpdate(),
+                  // onMouseEnter: (e) => {
+                  // forceUpdate();
+                  /*   console.log(
+                      "checked-input",
+                      data?.title,
+                      e,
+                      e.clientX,
+                      e.clientY
+                    );
+
+                    let elem = document.elementFromPoint(e.clientX, e.clientY);
+                    console.log(elem, "fjfj"); */
+                  //  },
+                  onMouseUp: async (e) => {
+                    /* let elem = document.elementFromPoint(e.clientX, e.clientY);
+                    console.log(elem, "fjfj");
+                    console.log("uped"); */
+                    // elem.click();
+
+                    await waitFor(500);
+                    forceUpdate();
+                  },
                 })
               )}
             {outputs
@@ -544,6 +621,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
                     background: "rgb(6, 78, 59)",
                     borderBottomRightRadius: "inherit",
                   },
+                  onClick: () => forceUpdate(),
                 })
               )}
           </div>
@@ -601,17 +679,17 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
   return (
     <div
       style={{
-        overflow: "auto",
+        //  overflow: "auto",
         backgroundImage: `url(${bgImages[bgIndex]?.src})`,
         backgroundRepeat: "no-repeat",
         backgroundAttachment: "fixed",
         backgroundPosition: "center",
         backgroundSize: "cover",
       }}
-      className="text-md w-screen h-screen"
+      className="text-md w-screen nh-screen"
     >
       <div
-        className="absolute flex p-2 items-center justify-between gap-4 w-full backdrop-blur-sm"
+        className="fixed top-0 left-0 flex p-2 items-center justify-between gap-4 w-full backdrop-blur-sm"
         style={{ zIndex: "100" }}
       >
         <div className="flex justify-between gap-4">
@@ -736,16 +814,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
           ) : (
             <button
               className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md min-h-8 shadow-md"
-              onClick={() =>
-                save({
-                  payload: {
-                    storyData: schema,
-                    storyId,
-                    storyTitle,
-                    bgIndex,
-                  },
-                })
-              }
+              onClick={() => setShowSummaryModal(true)}
             >
               ▶️ <span className="hidden lg:inline">Read Path</span>
             </button>
@@ -755,25 +824,30 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
 
       <div
         style={{
-          width: "calc(100vw * 3)",
+          width: "calc(100vw * 1)",
           height: "calc(100vh * 3)",
-          // overflow: "auto",
+          overflow: "auto",
+          display: "block",
         }}
+        id={storyState}
+
+        // className="block"
         //   title={`${schema?.nodes?.length}_${storyState}`}
       >
         <Diagram
           key={`${schema?.nodes?.length}_${storyState}_${time}`}
           schema={schema}
           onChange={(d) => {
+            console.log(d);
             if (d?.schema?.nodes) {
               d.schema.nodes = uniqBy(d.schema.nodes, "id");
             }
             if (d.links) {
               d.links = d.links.map((link) => ({
                 ...link,
-                className: link?.output?.includes("Reader")
-                  ? "reader-link-class"
-                  : "",
+                ...(link?.output?.includes("Reader")
+                  ? { className: "reader-link-class" }
+                  : {}),
               }));
             } else {
               // d.links = [];
@@ -805,9 +879,18 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
       )}
 
       <HelpModal showModal={showHelpModal} setShowModal={setShowHelpModal} />
+      {showSummaryModal && (
+        <SummaryModal
+          showModal={showSummaryModal}
+          setShowModal={setShowSummaryModal}
+          schema={schemaRef.current}
+        />
+      )}
       <SampleStoriesModal
         showModal={showSampleStoryModal}
         setShowModal={setShowSampleStoryModal}
+        addNode={addNode}
+        populateData={populateData}
       />
     </div>
   );

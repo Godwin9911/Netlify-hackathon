@@ -8797,8 +8797,9 @@ body {
   min-height: 100%;
   /* background-color: #f8fafc; */
   position: relative;
-  overflow: auto;
+  overflow: hidden;
   background-color: transparent;
+  display: block;
 }
 .bi.bi-diagram .bi.bi-diagram-node {
   box-sizing: content-box;
@@ -8977,4 +8978,8 @@ body {
 
 [data-port-id="port-Reader"] {
   background-color: rgb(6, 78, 59) !important;
+}
+
+#Reader .bi.bi-diagram .bi-link-canvas-layer .bi-diagram-link {
+  pointer-events: none;
 }

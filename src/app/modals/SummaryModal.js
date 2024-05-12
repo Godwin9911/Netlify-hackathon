@@ -1,7 +1,31 @@
 "use client";
-import React from "react";
+import React, { useMemo } from "react";
 
-export default function HelpModal({ showModal, setShowModal }) {
+export default function SummaryModal({ showModal, setShowModal, schema }) {
+  const selectedNodes = useMemo(() => {
+    const inputs = schema.links?.filter((link) =>
+      link.input.includes("Reader")
+    );
+
+    console.log(inputs);
+
+    const foundNodes = inputs.map((el) =>
+      schema.nodes.find((node) => {
+        console.log(node);
+        return node?.inputs?.find((ipt) => ipt.id === el.input);
+      })
+    );
+
+    /*    schema.nodes.filter((node) => {
+      if (!node?.inputs) return false;
+      return node.inputs.find((el) =>
+        inputs.find((link) => link.input == el.id)
+      );
+    }); */
+
+    console.log(foundNodes);
+    return foundNodes;
+  }, [schema]);
   return (
     <>
       {showModal ? (
@@ -15,7 +39,7 @@ export default function HelpModal({ showModal, setShowModal }) {
               <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                 {/*header*/}
                 <div className="flex items-start justify-between p-5 border-b border-solid border-blueGray-200 rounded-t">
-                  <h3 className="text-3xl font-semibold">❔Help </h3>
+                  <h3 className="text-3xl font-semibold">📄 Summary </h3>
                   <button
                     className="p-1 ml-auto bg-transparent border-0 text-black opacity-5 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
                     onClick={() => setShowModal(false)}
@@ -28,59 +52,45 @@ export default function HelpModal({ showModal, setShowModal }) {
                 {/*body*/}
                 <div className="relative p-4 flex-auto">
                   <div className="my-0 text-blueGray-500 text-lg leading-relaxed">
-                    <p>
-                      <div className="flex gap-4">
-                        <div>
-                          In:
-                          <div
-                            className="h-4 w-4"
-                            style={{ backgroundColor: "#BAE6FD" }}
-                          ></div>
-                        </div>
-                        <div>
-                          Out:
-                          <div
-                            className="h-4 w-4"
-                            style={{ backgroundColor: "#075985" }}
-                          ></div>
-                        </div>
-                      </div>{" "}
-                      👤
-                      <b>Author:</b> Creates the Story by Connecting Paths
-                      between cards. <br /> Can attach
-                      <ol className="text-sm flex gap-2">
-                        <li>Image</li>
-                        <li>Text</li>
-                        <li>Audio</li>
-                      </ol>
-                      to make the story.
-                      <br />
-                      Click Paths to unconnect cards
-                    </p>
+                    {selectedNodes.map(({ data }, index) => (
+                      <div
+                        key={index}
+                        class="p-0 bg-white rounded-xl transform transition-all -hover:-translate-y-1 duration-300 relative pt-2"
+                      >
+                        <div className="p-0">
+                          {data?.blob && (
+                            <div className="flex justify-center">
+                              <img
+                                class="h-40 object-cover rounded-xl"
+                                //  src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=750&q=80"
+                                src={
+                                  data?.blob
+                                    ? URL.createObjectURL(data.blob)
+                                    : ""
+                                }
+                                alt=""
+                              />
+                            </div>
+                          )}
 
-                    <hr className="my-8" />
-                    <p>
-                      <div className="flex gap-4">
-                        <div>
-                          In:
-                          <div
-                            className="h-4 w-4"
-                            style={{ backgroundColor: "#34D399" }}
-                          ></div>
-                        </div>
-                        <div>
-                          Out:
-                          <div
-                            className="h-4 w-4"
-                            style={{ backgroundColor: "#064E3B" }}
-                          ></div>
+                          <div class="p-2 pb-0 mb-0">
+                            {/*   <h2 class="font-bold text-md mb-2 p-1">
+                              {data.title || "..."}
+                            </h2> */}
+                            <p class={` text-gray-600 p-1`}>
+                              {data.paragraph || "..."}
+                            </p>
+                            {data?.blobAudio && (
+                              <audio
+                                src={URL.createObjectURL(data.blobAudio)}
+                                controls
+                                className="mt-2 w-full"
+                              />
+                            )}{" "}
+                          </div>
                         </div>
                       </div>
-                      👤
-                      <b>Reader:</b> Follows Story by Connecting Cards. <br />
-                      Can't unconnect cards user must progress
-                    </p>
-                    <hr className="my-8" />
+                    ))}
                   </div>
                 </div>
                 {/*footer*/}

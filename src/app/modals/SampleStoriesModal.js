@@ -1,8 +1,18 @@
 "use client";
 import React from "react";
+import { sciFiSample } from "../helpers";
 
-export default function SampleStoriesModal({ showModal, setShowModal }) {
-  const stories = [];
+export default function SampleStoriesModal({
+  showModal,
+  setShowModal,
+  populateData,
+}) {
+  const stories = [
+    {
+      name: "Sci-fi",
+      storyData: sciFiSample,
+    },
+  ];
   return (
     <>
       {showModal ? (
@@ -27,26 +37,30 @@ export default function SampleStoriesModal({ showModal, setShowModal }) {
                   </button>
                 </div>
                 {/*body*/}
-                <div className="relative p-6 flex-auto">
-                  <div className="my-4 text-blueGray-500 text-lg leading-relaxed">
+                <div className="relative p-4 flex-auto">
+                  <div className="my-0 text-blueGray-500 text-lg leading-relaxed">
                     <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
-                      Connect with one of our available wallet providers or
-                      create a new one.
+                      Select
                     </p>
                     <ul class="my-4 space-y-3">
-                      <li>
-                        <a
-                          href="#"
-                          class="flex items-center p-3 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white"
-                        >
-                          <span class="flex-1 ms-3 whitespace-nowrap">
-                            MetaMask
-                          </span>
-                          <span class="inline-flex items-center justify-center px-2 py-0.5 ms-3 text-xs font-medium text-gray-500 bg-gray-200 rounded dark:bg-gray-700 dark:text-gray-400">
-                            Popular
-                          </span>
-                        </a>
-                      </li>
+                      {stories.map((el, i) => (
+                        <li key={i}>
+                          <button
+                            onClick={() => {
+                              populateData({ storyFound: el.storyData });
+                              setShowModal(false);
+                            }}
+                            class="flex items-center p-3 text-base font-bold text-gray-900 rounded-lg bg-gray-50 hover:bg-gray-100 group hover:shadow"
+                          >
+                            <span class="flex-1 ms-3 whitespace-nowrap">
+                              Sci-fi
+                            </span>
+                            <span class="inline-flex items-center justify-center px-2 py-0.5 ms-3 text-xs font-medium text-gray-500 bg-gray-200 rounded dark:bg-gray-700 dark:text-gray-400">
+                              Popular
+                            </span>
+                          </button>
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 </div>
