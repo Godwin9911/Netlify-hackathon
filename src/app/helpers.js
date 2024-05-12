@@ -416,6 +416,6 @@ export const sciFiSample = {
     ],
   },
   storyId: "1715269266765",
-  storyTitle: "",
+  storyTitle: "Odyssey of the Pioneer: A Journey Through the Unknown",
   bgIndex: 2,
 };
