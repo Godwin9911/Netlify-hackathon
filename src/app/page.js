@@ -173,6 +173,21 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
     ); */
 
     // Reset
+    if (schemaRef?.current?.nodes) {
+      await schemaRef.current.nodes
+        .filter((el, index) => index !== 0)
+        .reduce(
+          (p, node) =>
+            new Promise(async (resolve) => {
+              //  console.log(node);
+              console.log("Remove", node.id);
+              removeNode(node);
+              await waitFor(100);
+              return resolve();
+            }),
+          Promise.resolve()
+        );
+    }
 
     await storyFound.storyData.nodes
       .filter((el, index) => index !== 0)
@@ -223,6 +238,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
         // console.log(JSON.parse(data.storyFound));
 
         const storyFound = JSON.parse(data.storyFound);
+
         populateData({
           storyFound,
           storyState,
@@ -816,7 +832,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
               className="text-white bg-gray-500 px-3 py-1 rounded-sm hover:bg-purple-700 text-md min-h-8 shadow-md"
               onClick={() => setShowSummaryModal(true)}
             >
-              ▶️ <span className="hidden lg:inline">Read Path</span>
+              ▶️ <span className="hidden lg:inline">Read Path Summary</span>
             </button>
           )}
         </div>
