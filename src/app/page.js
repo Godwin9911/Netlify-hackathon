@@ -471,7 +471,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
 
           <div class="p-2 pb-0 mb-0">
             {!data.editMode ? (
-              <h2 class={`font-bold text-md mb-2 p-1 ${arti.className}`}>
+              <h2 class={`font-bold text-md mb-2 p-0 ${arti.className}`}>
                 {data.title || "..."}
               </h2>
             ) : (
@@ -740,17 +740,17 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
     >
       {/* {JSON.stringify(bgImages[bgIndex]?.src)} */}
       <div
-        className="fixed top-0 left-0 flex p-2 items-center justify-between gap-4 w-full backdrop-blur-sm"
+        className="fixed top-0 left-0 flex flex-wrap lg:flex-nowrap p-2 items-center justify-between gap-4 w-full backdrop-blur-sm text-xs"
         style={{ zIndex: "100" }}
       >
-        <div className="flex justify-between gap-4">
+        <div className="flex flex-wrap justify-start gap-4">
           <div className="w-8">
             <img src="/logo.svg" />
           </div>
           <input
             placeholder="Enter Story Title..."
             className="border h-8 px-1 text-md shadow-md"
-            style={{ width: "400px" }}
+            style={{ width: "400px", maxWidth: "50vw" }}
             value={storyTitle}
             onChange={(e) => setStoryTitle(e.target.value)}
           />
@@ -886,6 +886,7 @@ const UncontrolledDiagram = ({ storyIdParam }) => {
           display: "block",
         }}
         id={storyState}
+        className="text-sm"
 
         // className="block"
         //   title={`${schema?.nodes?.length}_${storyState}`}
