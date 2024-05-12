@@ -38,7 +38,7 @@ export const sciFiSample = {
     nodes: [
       {
         id: "node-1",
-        content: "Start Adventure...",
+        content: "🟢 Start Here !",
         coordinates: [60, 60],
         outputs: [
           {
@@ -54,16 +54,16 @@ export const sciFiSample = {
       {
         id: "node-1715452837426_0.7577755121633958",
         content: "Node 1715452837426_0.7577755121633958",
-        coordinates: [435, 94],
+        coordinates: [465, 69],
         data: {
           title: "Branch 1:",
           paragraph:
-            "Captain Ava decides to investigate a mysterious signal emanating from a nearby asteroid.",
-          editMode: true,
+            "Captain Ava decides to investigate a mysterious signal emanating from a nearby asteroid..",
+          editMode: false,
           selected: false,
           blob: "",
           blobAudio: "",
-          storyState: "Author",
+          storyState: "Reader",
           color: "#87b6e0",
         },
         inputs: [
@@ -86,16 +86,16 @@ export const sciFiSample = {
       {
         id: "node-1715452838869_0.30364832243817497",
         content: "Node 1715452838869_0.30364832243817497",
-        coordinates: [762, 72],
+        coordinates: [816, 37],
         data: {
           title: "Branch 1.1: ",
           paragraph:
             "The signal leads them to an alien artifact that grants them advanced technology, propelling humanity into a new era of prosperity.",
-          editMode: true,
+          editMode: false,
           selected: false,
           blob: "",
           blobAudio: "",
-          storyState: "Author",
+          storyState: "Reader",
           color: "#84bdef",
         },
         inputs: [
@@ -118,16 +118,16 @@ export const sciFiSample = {
       {
         id: "node-1715452885533_0.13996356418405131",
         content: "Node 1715452885533_0.13996356418405131",
-        coordinates: [119, 164],
+        coordinates: [112, 269],
         data: {
           title: "Prologue",
           paragraph:
             'In the year 2150, aboard the starship "Pioneer," a crew of three embarks on a mission to explore a distant galaxy. As they traverse the cosmos, they encounter a series of unexpected events, each leading to branching paths:',
-          editMode: true,
+          editMode: false,
           selected: false,
-          blob: "",
-          blobAudio: "",
-          storyState: "Author",
+          blob: "1715519230914_9374",
+          blobAudio: "1715521600850_338",
+          storyState: "Reader",
           color: "#DAE1E7",
         },
         inputs: [
@@ -150,16 +150,16 @@ export const sciFiSample = {
       {
         id: "node-1715452979404_0.8924629351131208",
         content: "Node 1715452979404_0.8924629351131208",
-        coordinates: [1124, 67],
+        coordinates: [1179, 73],
         data: {
-          title: "Branch 1.2:",
+          title: "Branch 1.2: (Epilogue)",
           paragraph:
             'The artifact triggers a catastrophic chain reaction, threatening to destroy the "Pioneer" and everyone aboard.',
-          editMode: true,
+          editMode: false,
           selected: false,
           blob: "",
           blobAudio: "",
-          storyState: "Author",
+          storyState: "Reader",
           color: "#80b6e5",
         },
         inputs: [
@@ -182,16 +182,16 @@ export const sciFiSample = {
       {
         id: "node-1715453040515_0.7521475902511483",
         content: "Node 1715453040515_0.7521475902511483",
-        coordinates: [406, 395],
+        coordinates: [458, 395],
         data: {
           title: "Branch 2:",
           paragraph:
             "First Officer Kai suggests avoiding the asteroid and continuing their original course",
-          editMode: true,
+          editMode: false,
           selected: false,
           blob: "",
           blobAudio: "",
-          storyState: "Author",
+          storyState: "Reader",
           color: "#7bec6f",
         },
         inputs: [
@@ -219,11 +219,11 @@ export const sciFiSample = {
           title: "Branch 2:1",
           paragraph:
             "They stumble upon a habitable planet rich in resources, offering hope for humanity's survival.",
-          editMode: true,
+          editMode: false,
           selected: false,
           blob: "",
           blobAudio: "",
-          storyState: "Author",
+          storyState: "Reader",
           color: "#76f27d",
         },
         inputs: [
@@ -246,16 +246,16 @@ export const sciFiSample = {
       {
         id: "node-1715453162887_0.17664247356066354",
         content: "Node 1715453162887_0.17664247356066354",
-        coordinates: [1124, 417],
+        coordinates: [1113, 422],
         data: {
-          title: "Branch 2.2:",
+          title: "Branch 2.2: (Epilogue)",
           paragraph:
             "The planet is inhabited by a hostile alien species, forcing the crew into a desperate battle for survival.",
-          editMode: true,
+          editMode: false,
           selected: false,
           blob: "",
           blobAudio: "",
-          storyState: "Author",
+          storyState: "Reader",
           color: "#86fb7d",
         },
         inputs: [
@@ -278,16 +278,16 @@ export const sciFiSample = {
       {
         id: "node-1715453211571_0.8962154238694422",
         content: "Node 1715453211571_0.8962154238694422",
-        coordinates: [415, 705],
+        coordinates: [451, 774],
         data: {
           title: "Branch 3: ",
           paragraph:
             "Scientist Maya proposes studying a peculiar anomaly in space.",
-          editMode: true,
+          editMode: false,
           selected: false,
           blob: "",
           blobAudio: "",
-          storyState: "Author",
+          storyState: "Reader",
           color: "#f08f81",
         },
         inputs: [
@@ -310,16 +310,16 @@ export const sciFiSample = {
       {
         id: "node-1715453340294_0.2130530943662896",
         content: "Node 1715453340294_0.2130530943662896",
-        coordinates: [715, 705],
+        coordinates: [807, 766],
         data: {
           title: "Branch 3.1",
           paragraph:
             "The anomaly transports them to an alternate reality where Earth is a utopian paradise.",
-          editMode: true,
+          editMode: false,
           selected: false,
           blob: "",
           blobAudio: "",
-          storyState: "Author",
+          storyState: "Reader",
           color: "#f6887a",
         },
         inputs: [
@@ -342,16 +342,16 @@ export const sciFiSample = {
       {
         id: "node-1715453385964_0.7384545808534371",
         content: "Node 1715453385964_0.7384545808534371",
-        coordinates: [1022, 709],
+        coordinates: [1147, 764],
         data: {
-          title: "Branch 3.2",
+          title: "Branch 3.2 (Epilogue)",
           paragraph:
             ": They find themselves trapped in a nightmarish dimension where time is distorted and reality is twisted.",
-          editMode: true,
+          editMode: false,
           selected: false,
           blob: "",
           blobAudio: "",
-          storyState: "Author",
+          storyState: "Reader",
           color: "#ed8e84",
         },
         inputs: [
@@ -372,7 +372,48 @@ export const sciFiSample = {
         ],
       },
     ],
-    links: [],
+    links: [
+      {
+        input: "port-0.6940372726669415-Author",
+        output: "port-Author",
+      },
+      {
+        input: "port-0.2407769852578392-Author",
+        output: "port-0.8833430555293531-Author",
+      },
+      {
+        input: "port-0.28384375284865815-Author",
+        output: "port-0.05591136329849755-Author",
+      },
+      {
+        input: "port-0.1416068607857306-Author",
+        output: "port-0.33955977979084473-Author",
+      },
+      {
+        input: "port-0.32808672548252815-Author",
+        output: "port-0.8833430555293531-Author",
+      },
+      {
+        input: "port-0.33162396105523606-Author",
+        output: "port-0.06757137243953282-Author",
+      },
+      {
+        input: "port-0.8742186358395305-Author",
+        output: "port-0.8493840992235879-Author",
+      },
+      {
+        input: "port-0.4864991087198127-Author",
+        output: "port-0.8833430555293531-Author",
+      },
+      {
+        input: "port-0.5508476159972138-Author",
+        output: "port-0.869847248663951-Author",
+      },
+      {
+        input: "port-0.027780131852136014-Author",
+        output: "port-0.6438710554250051-Author",
+      },
+    ],
   },
   storyId: "1715269266765",
   storyTitle: "",

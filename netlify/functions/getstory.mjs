@@ -12,6 +12,13 @@ export const handler = async (req, res) => {
   console.log(storyId);
   const storyFound = await story.get(`storyData_${storyId}`);
 
+  if (!storyFound) {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: "Story Gotten" }),
+    };
+  }
+
   return {
     statusCode: 200,
     body: JSON.stringify({ message: "Story Gotten", storyFound }),
